@@ -6,7 +6,31 @@ import { ContentList } from './components/ContentList';
 import { Logo } from './components/Logo';
 import { Town, Category } from './types';
 import { CITY_OF_THE_MONTH, TOWNS } from './constants';
-import { ArrowLeft, Star, Users, MapPin, Instagram, Calendar } from 'lucide-react';
+import { ArrowLeft, Star, Users, MapPin, Instagram, Calendar, PenLine, Send } from 'lucide-react';
+
+const BLOG_POSTS = [
+  {
+    title: 'How we picked the March City of the Month',
+    category: 'Curation',
+    author: 'Milena • Kotor Ambassador',
+    excerpt: 'Behind the scenes of the carnival route, the viewpoints we verified, and how locals voted.',
+    date: 'Mar 12, 2024',
+  },
+  {
+    title: '5 sunrise spots that never make the guidebooks',
+    category: 'Hidden Gems',
+    author: 'Luka • Cetinje Ambassador',
+    excerpt: 'From Lovćen ridge to tiny village chapels, these are the early-morning places we trust.',
+    date: 'Mar 8, 2024',
+  },
+  {
+    title: 'Street food we actually eat after midnight',
+    category: 'Food',
+    author: 'Ana • Podgorica Ambassador',
+    excerpt: 'No tourist traps, just proper burek, kebab, and the bakery windows that stay lit.',
+    date: 'Mar 3, 2024',
+  },
+];
 
 const App: React.FC = () => {
   const [selectedTown, setSelectedTown] = useState<Town | null>(null);
@@ -52,6 +76,7 @@ const App: React.FC = () => {
             <nav className="flex space-x-6 text-sm font-medium text-slate-600">
               <a href="#" className="hover:text-montenegro-red transition-colors">About Us</a>
               <a href="#ambassadors" className="hover:text-montenegro-red transition-colors">Ambassadors</a>
+              <a href="#blog" className="hover:text-montenegro-red transition-colors">Blog</a>
             </nav>
             <div className="h-6 w-px bg-slate-200"></div>
             <div className="flex items-center space-x-4">
@@ -130,22 +155,126 @@ const App: React.FC = () => {
 
             {/* Ambassador Program Section */}
             <div id="ambassadors" className="bg-white py-24 border-t border-slate-100 mt-12">
-              <div className="max-w-5xl mx-auto px-4 text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-50 rounded-full mb-6">
-                  <Users size={32} className="text-slate-400" />
+              <div className="max-w-6xl mx-auto px-4">
+                <div className="text-center mb-12">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-50 rounded-full mb-6">
+                    <Users size={32} className="text-slate-400" />
+                  </div>
+                  <h2 className="text-4xl font-display font-bold text-slate-900 mb-6">Built by Locals, Not Algorithms</h2>
+                  <p className="text-xl text-slate-500 max-w-3xl mx-auto">
+                    Our lists are limited because quality matters. If you know the shortcuts, the family-run kitchens,
+                    and the stories behind each place, we want you on the team.
+                  </p>
                 </div>
-                <h2 className="text-4xl font-display font-bold text-slate-900 mb-6">Built by Locals, Not Algorithms</h2>
-                <p className="text-xl text-slate-500 max-w-2xl mx-auto mb-10">
-                  Our lists are limited because quality matters. Don't see your town? Or think a list is wrong?
-                  Join our network of local ambassadors and help us show the real Montenegro.
-                </p>
-                <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-                  <button className="px-8 py-3 bg-montenegro-red text-white font-bold rounded-lg hover:bg-red-700 transition-colors shadow-lg shadow-red-500/30">
-                    Become an Ambassador
-                  </button>
-                  <button className="px-8 py-3 bg-white text-slate-900 font-bold rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
-                    Report an Issue
-                  </button>
+
+                <div className="grid lg:grid-cols-2 gap-10 items-start">
+                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 shadow-sm">
+                    <h3 className="text-2xl font-display font-bold text-slate-900 mb-4">Ambassador Profile</h3>
+                    <ul className="space-y-3 text-slate-600 text-sm leading-relaxed">
+                      <li className="flex items-start gap-3"><span className="text-montenegro-red text-lg">•</span> Lives in or frequently visits the town they cover</li>
+                      <li className="flex items-start gap-3"><span className="text-montenegro-red text-lg">•</span> Loves verifying places in person and talking to owners</li>
+                      <li className="flex items-start gap-3"><span className="text-montenegro-red text-lg">•</span> Can share 1-2 photos per spot and quick notes in English or Montenegrin</li>
+                      <li className="flex items-start gap-3"><span className="text-montenegro-red text-lg">•</span> Keeps lists tight — we only publish a Top 5</li>
+                    </ul>
+                    <div className="mt-8 bg-white border border-slate-200 rounded-xl p-5 flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-full bg-montenegro-red/10 text-montenegro-red flex items-center justify-center">
+                        <PenLine size={18} />
+                      </div>
+                      <div>
+                        <p className="text-slate-900 font-semibold">What you get</p>
+                        <p className="text-slate-600 text-sm">Priority feature on city pages, contributor badges, and first say in monthly updates.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <form className="bg-white border border-slate-200 rounded-2xl p-8 shadow-xl shadow-slate-200/60 space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-bold uppercase tracking-[0.2em] text-montenegro-red">Apply</p>
+                        <h3 className="text-2xl font-display font-bold text-slate-900">Become an Ambassador</h3>
+                        <p className="text-sm text-slate-500 mt-1">Share the essentials and we'll reach out within 48 hours.</p>
+                      </div>
+                      <div className="hidden md:flex items-center text-xs text-slate-500 gap-2 bg-slate-50 px-4 py-2 rounded-full border border-slate-200">
+                        <Send size={14} /> Secure form
+                      </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <label className="flex flex-col text-sm font-semibold text-slate-700">
+                        Full Name
+                        <input required className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none" placeholder="Your name" />
+                      </label>
+                      <label className="flex flex-col text-sm font-semibold text-slate-700">
+                        Email
+                        <input required type="email" className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none" placeholder="you@example.com" />
+                      </label>
+                      <label className="flex flex-col text-sm font-semibold text-slate-700">
+                        Town or Region
+                        <input className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none" placeholder="e.g. Kotor, Durmitor area" />
+                      </label>
+                      <label className="flex flex-col text-sm font-semibold text-slate-700">
+                        Expertise
+                        <input className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none" placeholder="Food, hikes, architecture..." />
+                      </label>
+                      <label className="flex flex-col text-sm font-semibold text-slate-700 md:col-span-2">
+                        Why do you want to join?
+                        <textarea className="mt-2 rounded-lg border border-slate-200 px-3 py-3 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none" rows={3} placeholder="Tell us how you explore your town"></textarea>
+                      </label>
+                      <label className="flex flex-col text-sm font-semibold text-slate-700">
+                        Links or Socials
+                        <input className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none" placeholder="Instagram, blog, maps list" />
+                      </label>
+                      <label className="flex flex-col text-sm font-semibold text-slate-700">
+                        Availability
+                        <select className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none">
+                          <option>1-2 hrs / week</option>
+                          <option>3-5 hrs / week</option>
+                          <option>Weekend drops</option>
+                          <option>Seasonal (summer/winter)</option>
+                        </select>
+                      </label>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <p className="text-xs text-slate-500">We never sell data. Your submission goes directly to the curation team.</p>
+                      <button type="submit" className="px-6 py-3 bg-montenegro-red text-white font-bold rounded-lg hover:bg-red-700 transition-colors shadow-lg shadow-red-500/30">
+                        Submit application
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            {/* Blog Section */}
+            <div id="blog" className="bg-slate-900 text-white py-24 border-t border-slate-800">
+              <div className="max-w-6xl mx-auto px-4">
+                <div className="flex items-center justify-between flex-col md:flex-row md:items-end gap-6 mb-10">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-montenegro-gold mb-2">Ambassador Blog</p>
+                    <h2 className="text-4xl font-display font-bold leading-tight">Stories from the Top 5 frontlines</h2>
+                    <p className="text-slate-300 mt-3 max-w-2xl">Field notes, photo drops, and why certain spots made the cut. Updated by the locals who walk these streets every day.</p>
+                  </div>
+                  <a
+                    className="inline-flex items-center gap-2 text-sm font-bold text-montenegro-gold hover:text-white transition-colors"
+                    href="#ambassadors"
+                  >
+                    Become a contributor <ArrowLeft className="rotate-180" size={18} />
+                  </a>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-6">
+                  {BLOG_POSTS.map((post) => (
+                    <article key={post.title} className="bg-white text-slate-900 rounded-2xl p-6 border border-slate-200 shadow-xl shadow-slate-900/10">
+                      <div className="flex items-center justify-between text-xs font-bold uppercase tracking-[0.2em] text-montenegro-red mb-3">
+                        <span>{post.category}</span>
+                        <span className="text-slate-400">{post.date}</span>
+                      </div>
+                      <h3 className="text-xl font-display font-bold text-slate-900 mb-3">{post.title}</h3>
+                      <p className="text-slate-600 text-sm leading-relaxed mb-4">{post.excerpt}</p>
+                      <div className="text-sm font-semibold text-slate-900">{post.author}</div>
+                    </article>
+                  ))}
                 </div>
               </div>
             </div>
