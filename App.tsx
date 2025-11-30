@@ -351,65 +351,67 @@ const App: React.FC = () => {
                 <div className="grid lg:grid-cols-2 gap-10 items-stretch">
                   <div
                     id="feedback-box"
-                    className="bg-slate-900 text-white rounded-2xl p-8 border border-slate-800 shadow-xl space-y-6 h-full flex flex-col"
+                    className="bg-slate-900 text-white rounded-2xl p-8 border border-slate-800 shadow-xl h-full flex flex-col"
                   >
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <p className="text-sm font-bold uppercase tracking-[0.2em] text-montenegro-gold">Disagree with a list?</p>
-                        <h3 className="text-2xl font-display font-bold">Report an issue</h3>
-                        <p className="text-sm text-slate-300 mt-1">
-                          Tell us why something shouldn’t be on the list and our curators will re-check it within 48 hours.
-                        </p>
+                    <div className="space-y-6 flex-1 flex flex-col">
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="text-sm font-bold uppercase tracking-[0.2em] text-montenegro-gold">Disagree with a list?</p>
+                          <h3 className="text-2xl font-display font-bold">Report an issue</h3>
+                          <p className="text-sm text-slate-300 mt-1">
+                            Tell us why something shouldn’t be on the list and our curators will re-check it within 48 hours.
+                          </p>
+                        </div>
+                        <div className="hidden md:flex items-center text-[10px] text-slate-200 gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10 whitespace-nowrap">
+                          <AlertTriangle size={12} /> Fast triage
+                        </div>
                       </div>
-                      <div className="hidden md:flex items-center text-[10px] text-slate-200 gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10 whitespace-nowrap">
-                        <AlertTriangle size={12} /> Fast triage
+
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <label className="flex flex-col text-sm font-semibold text-white">
+                          Your name (optional)
+                          <input
+                            className="mt-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white focus:border-montenegro-gold focus:ring-2 focus:ring-montenegro-gold/30 outline-none"
+                            placeholder="Anonymous works too"
+                          />
+                        </label>
+                        <label className="flex flex-col text-sm font-semibold text-white">
+                          Which list are you flagging?
+                          <input
+                            className="mt-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white placeholder:text-white/50 focus:border-montenegro-gold focus:ring-2 focus:ring-montenegro-gold/30 outline-none"
+                            placeholder="e.g. Kotor food"
+                          />
+                        </label>
+                        <label className="flex flex-col text-sm font-semibold text-white">
+                          Why should it change?
+                          <select className="mt-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white focus:border-montenegro-gold focus:ring-2 focus:ring-montenegro-gold/30 outline-none">
+                            <option className="text-slate-900">Closed down</option>
+                            <option className="text-slate-900">Quality slipped</option>
+                            <option className="text-slate-900">Safety concerns</option>
+                            <option className="text-slate-900">Better alternative exists</option>
+                            <option className="text-slate-900">Other</option>
+                          </select>
+                        </label>
+                        <label className="flex flex-col text-sm font-semibold text-white">
+                          Details that help us verify
+                          <textarea
+                            className="mt-2 rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-white placeholder:text-white/50 focus:border-montenegro-gold focus:ring-2 focus:ring-montenegro-gold/30 outline-none"
+                            rows={3}
+                            placeholder="Share dates, photos, or what you observed"
+                          ></textarea>
+                        </label>
+                      </div>
+                      <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-200">How we respond</p>
+                        <ul className="space-y-2 text-sm text-slate-100">
+                          <li className="flex items-start gap-2"><span className="text-montenegro-gold text-lg leading-5">•</span>We verify on the ground within 48 hours.</li>
+                          <li className="flex items-start gap-2"><span className="text-montenegro-gold text-lg leading-5">•</span>You receive a follow-up with what changed.</li>
+                          <li className="flex items-start gap-2"><span className="text-montenegro-gold text-lg leading-5">•</span>If urgent, we temporarily hide the spot while we check.</li>
+                        </ul>
                       </div>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <label className="flex flex-col text-sm font-semibold text-white">
-                        Your name (optional)
-                        <input
-                          className="mt-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white focus:border-montenegro-gold focus:ring-2 focus:ring-montenegro-gold/30 outline-none"
-                          placeholder="Anonymous works too"
-                        />
-                      </label>
-                      <label className="flex flex-col text-sm font-semibold text-white">
-                        Which list are you flagging?
-                        <input
-                          className="mt-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white placeholder:text-white/50 focus:border-montenegro-gold focus:ring-2 focus:ring-montenegro-gold/30 outline-none"
-                          placeholder="e.g. Kotor food"
-                        />
-                      </label>
-                      <label className="flex flex-col text-sm font-semibold text-white">
-                        Why should it change?
-                        <select className="mt-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white focus:border-montenegro-gold focus:ring-2 focus:ring-montenegro-gold/30 outline-none">
-                          <option className="text-slate-900">Closed down</option>
-                          <option className="text-slate-900">Quality slipped</option>
-                          <option className="text-slate-900">Safety concerns</option>
-                          <option className="text-slate-900">Better alternative exists</option>
-                          <option className="text-slate-900">Other</option>
-                        </select>
-                      </label>
-                      <label className="flex flex-col text-sm font-semibold text-white">
-                        Details that help us verify
-                        <textarea
-                          className="mt-2 rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-white placeholder:text-white/50 focus:border-montenegro-gold focus:ring-2 focus:ring-montenegro-gold/30 outline-none"
-                          rows={3}
-                          placeholder="Share dates, photos, or what you observed"
-                        ></textarea>
-                      </label>
-                    </div>
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2">
-                      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-200">How we respond</p>
-                      <ul className="space-y-2 text-sm text-slate-100">
-                        <li className="flex items-start gap-2"><span className="text-montenegro-gold text-lg leading-5">•</span>We verify on the ground within 48 hours.</li>
-                        <li className="flex items-start gap-2"><span className="text-montenegro-gold text-lg leading-5">•</span>You receive a follow-up with what changed.</li>
-                        <li className="flex items-start gap-2"><span className="text-montenegro-gold text-lg leading-5">•</span>If urgent, we temporarily hide the spot while we check.</li>
-                      </ul>
-                    </div>
-
-                    <div className="grid sm:grid-cols-[1fr_auto] items-center gap-3 mt-auto">
+                    <div className="grid sm:grid-cols-[1fr_auto] items-center gap-3 mt-auto pt-4">
                       <p className="text-xs text-slate-400 flex items-center gap-2">
                         <Sparkles size={14} /> <span className="whitespace-nowrap">Fast triage by the curator team</span>
                       </p>
@@ -417,8 +419,9 @@ const App: React.FC = () => {
                     </div>
                   </div>
 
-                  <form className="bg-white border border-slate-200 rounded-2xl p-8 shadow-xl shadow-slate-200/60 space-y-6 h-full flex flex-col">
-                    <div className="flex items-center justify-between gap-4">
+                  <form className="bg-white border border-slate-200 rounded-2xl p-8 shadow-xl shadow-slate-200/60 h-full flex flex-col">
+                    <div className="space-y-6 flex-1 flex flex-col">
+                      <div className="flex items-center justify-between gap-4">
                       <div>
                         <p className="text-sm font-bold uppercase tracking-[0.2em] text-montenegro-red">Apply</p>
                         <h3 className="text-2xl font-display font-bold text-slate-900">Become an Ambassador</h3>
@@ -496,8 +499,9 @@ const App: React.FC = () => {
                         <li className="flex items-start gap-2"><span className="text-montenegro-red text-lg leading-5">•</span> Keeps lists tight — we only publish a Top 5</li>
                       </ul>
                     </div>
+                    </div>
 
-                    <div className="grid sm:grid-cols-[1fr_auto] items-center gap-3 mt-auto">
+                    <div className="grid sm:grid-cols-[1fr_auto] items-center gap-3 mt-auto pt-4">
                       <p className="text-xs text-slate-500">We never sell data. Your submission goes directly to the curation team.</p>
                       <button
                         type="submit"
