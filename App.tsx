@@ -353,7 +353,7 @@ const App: React.FC = () => {
                     id="feedback-box"
                     className="bg-slate-900 text-white rounded-2xl p-8 border border-slate-800 shadow-xl space-y-6 h-full flex flex-col"
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-4">
                       <div>
                         <p className="text-sm font-bold uppercase tracking-[0.2em] text-montenegro-gold">Disagree with a list?</p>
                         <h3 className="text-2xl font-display font-bold">Report an issue</h3>
@@ -361,8 +361,8 @@ const App: React.FC = () => {
                           Tell us why something shouldn’t be on the list and our curators will re-check it within 48 hours.
                         </p>
                       </div>
-                      <div className="hidden md:flex items-center text-xs text-slate-300 gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/10">
-                        <AlertTriangle size={14} /> Fast triage
+                      <div className="hidden md:flex items-center text-[10px] text-slate-200 gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
+                        <AlertTriangle size={12} /> Fast triage
                       </div>
                     </div>
 
@@ -400,23 +400,32 @@ const App: React.FC = () => {
                         ></textarea>
                       </label>
                     </div>
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-auto">
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-200">How we respond</p>
+                      <ul className="space-y-2 text-sm text-slate-100">
+                        <li className="flex items-start gap-2"><span className="text-montenegro-gold text-lg leading-5">•</span>We verify on the ground within 48 hours.</li>
+                        <li className="flex items-start gap-2"><span className="text-montenegro-gold text-lg leading-5">•</span>You receive a follow-up with what changed.</li>
+                        <li className="flex items-start gap-2"><span className="text-montenegro-gold text-lg leading-5">•</span>If urgent, we temporarily hide the spot while we check.</li>
+                      </ul>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                       <p className="text-xs text-slate-400 flex items-center gap-2">
                         <Sparkles size={14} /> Fast triage by the curator team
                       </p>
-                      <button className="px-6 py-3 bg-white text-slate-900 font-bold rounded-lg hover:bg-slate-200 transition-colors">Submit a report</button>
+                      <button className="px-5 py-2.5 bg-white text-slate-900 font-bold rounded-lg hover:bg-slate-200 transition-colors">Submit a report</button>
                     </div>
                   </div>
 
                   <form className="bg-white border border-slate-200 rounded-2xl p-8 shadow-xl shadow-slate-200/60 space-y-6 h-full flex flex-col">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-4">
                       <div>
                         <p className="text-sm font-bold uppercase tracking-[0.2em] text-montenegro-red">Apply</p>
                         <h3 className="text-2xl font-display font-bold text-slate-900">Become an Ambassador</h3>
                         <p className="text-sm text-slate-500 mt-1">Share the essentials and we'll reach out within 48 hours.</p>
                       </div>
-                      <div className="hidden md:flex items-center text-xs text-slate-500 gap-2 bg-slate-50 px-4 py-2 rounded-full border border-slate-200">
-                        <Send size={14} /> Secure form
+                      <div className="hidden md:flex items-center text-[10px] text-slate-500 gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
+                        <Send size={12} /> Secure form
                       </div>
                     </div>
 
@@ -492,7 +501,7 @@ const App: React.FC = () => {
                       <p className="text-xs text-slate-500">We never sell data. Your submission goes directly to the curation team.</p>
                       <button
                         type="submit"
-                        className="px-6 py-3 bg-montenegro-red text-white font-bold rounded-lg hover:bg-red-700 transition-colors shadow-lg shadow-red-500/30"
+                        className="px-5 py-2.5 bg-montenegro-red text-white font-bold rounded-lg hover:bg-red-700 transition-colors shadow-lg shadow-red-500/30"
                       >
                         Submit application
                       </button>
@@ -543,11 +552,6 @@ const App: React.FC = () => {
                       </div>
                       <div className="absolute -right-16 -top-16 h-32 w-32 rounded-full bg-montenegro-red/30 blur-3xl group-hover:blur-2xl transition-all"></div>
                       <div className="absolute -left-10 bottom-0 h-24 w-24 rounded-full bg-montenegro-gold/20 blur-3xl group-hover:blur-2xl transition-all"></div>
-                      {index === 0 && (
-                        <div className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-[0.3em] bg-white/15 border border-white/30 text-white px-3 py-1 rounded-full backdrop-blur shadow-lg shadow-black/30">
-                          New
-                        </div>
-                      )}
                     </article>
                   ))}
                 </div>
