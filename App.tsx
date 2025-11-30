@@ -361,7 +361,7 @@ const App: React.FC = () => {
                           Tell us why something shouldn’t be on the list and our curators will re-check it within 48 hours.
                         </p>
                       </div>
-                      <div className="hidden md:flex items-center text-[10px] text-slate-200 gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
+                      <div className="hidden md:flex items-center text-[10px] text-slate-200 gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10 whitespace-nowrap">
                         <AlertTriangle size={12} /> Fast triage
                       </div>
                     </div>
@@ -409,9 +409,9 @@ const App: React.FC = () => {
                       </ul>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-auto">
                       <p className="text-xs text-slate-400 flex items-center gap-2">
-                        <Sparkles size={14} /> Fast triage by the curator team
+                        <Sparkles size={14} /> <span className="whitespace-nowrap">Fast triage by the curator team</span>
                       </p>
                       <button className="px-5 py-2.5 bg-white text-slate-900 font-bold rounded-lg hover:bg-slate-200 transition-colors">Submit a report</button>
                     </div>
@@ -424,7 +424,7 @@ const App: React.FC = () => {
                         <h3 className="text-2xl font-display font-bold text-slate-900">Become an Ambassador</h3>
                         <p className="text-sm text-slate-500 mt-1">Share the essentials and we'll reach out within 48 hours.</p>
                       </div>
-                      <div className="hidden md:flex items-center text-[10px] text-slate-500 gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
+                      <div className="hidden md:flex items-center text-[10px] text-slate-500 gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200 whitespace-nowrap">
                         <Send size={12} /> Secure form
                       </div>
                     </div>
@@ -501,7 +501,7 @@ const App: React.FC = () => {
                       <p className="text-xs text-slate-500">We never sell data. Your submission goes directly to the curation team.</p>
                       <button
                         type="submit"
-                        className="px-5 py-2.5 bg-montenegro-red text-white font-bold rounded-lg hover:bg-red-700 transition-colors shadow-lg shadow-red-500/30"
+                        className="px-5 py-2.5 bg-montenegro-red text-white font-bold rounded-lg hover:bg-red-700 transition-colors shadow-lg shadow-red-500/30 whitespace-nowrap"
                       >
                         Submit application
                       </button>
@@ -537,9 +537,9 @@ const App: React.FC = () => {
                     >
                       <div className="absolute inset-0 opacity-60 group-hover:opacity-80 transition-all" style={{ backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.6)), url(${post.hero})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
                       <div className="relative p-6 flex flex-col h-full backdrop-blur-[1px]">
-                        <div className="flex items-center justify-between text-xs font-bold uppercase tracking-[0.2em] text-montenegro-gold mb-3 pr-12">
+                        <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.2em] text-montenegro-gold mb-3 pr-12">
                           <span className="flex items-center gap-2"><Sparkles size={14} /> {post.category}</span>
-                          <span className="text-white/80">{post.date}</span>
+                          <span className="text-white/80 pl-3">{post.date}</span>
                         </div>
                         <h3 className="text-xl font-display font-bold text-white mb-3 group-hover:text-montenegro-gold transition-colors">{post.title}</h3>
                         <p className="text-slate-200/90 text-sm leading-relaxed mb-4 line-clamp-3">{post.excerpt}</p>
