@@ -188,7 +188,7 @@ const App: React.FC = () => {
               <img src={selectedPost.hero} alt={selectedPost.title} className="absolute inset-0 w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-b from-slate-900/90 via-slate-900/60 to-slate-50"></div>
               <div className="relative max-w-5xl mx-auto px-4 pt-16 pb-12 flex flex-col gap-6 justify-end h-full">
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center justify-between gap-4">
                   <button
                     onClick={handleBackToBlog}
                     className="w-max bg-white/15 border border-white/20 backdrop-blur-md text-white text-sm font-bold px-4 py-2 rounded-full flex items-center gap-2 hover:bg-white/25 transition"
@@ -537,9 +537,9 @@ const App: React.FC = () => {
                     >
                       <div className="absolute inset-0 opacity-60 group-hover:opacity-80 transition-all" style={{ backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.6)), url(${post.hero})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
                       <div className="relative p-6 flex flex-col h-full backdrop-blur-[1px]">
-                        <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.2em] text-montenegro-gold mb-3 pr-12">
+                        <div className="flex items-center text-[10px] font-bold uppercase tracking-[0.2em] text-montenegro-gold mb-3">
                           <span className="flex items-center gap-2"><Sparkles size={14} /> {post.category}</span>
-                          <span className="text-white/80 pl-3">{post.date}</span>
+                          <span className="ml-auto text-white/80 pl-4 text-right">{post.date}</span>
                         </div>
                         <h3 className="text-xl font-display font-bold text-white mb-3 group-hover:text-montenegro-gold transition-colors">{post.title}</h3>
                         <p className="text-slate-200/90 text-sm leading-relaxed mb-4 line-clamp-3">{post.excerpt}</p>
