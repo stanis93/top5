@@ -188,21 +188,27 @@ const App: React.FC = () => {
               <img src={selectedPost.hero} alt={selectedPost.title} className="absolute inset-0 w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-b from-slate-900/90 via-slate-900/60 to-slate-50"></div>
               <div className="relative max-w-5xl mx-auto px-4 pt-16 pb-12 flex flex-col gap-6 justify-end h-full">
-                <button
-                  onClick={handleBackToBlog}
-                  className="w-max bg-white/15 border border-white/20 backdrop-blur-md text-white text-sm font-bold px-4 py-2 rounded-full flex items-center gap-2 hover:bg-white/25 transition"
-                >
-                  <ArrowLeft size={16} /> Back to Blog
-                </button>
-                <div>
-                  <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.2em] text-montenegro-gold font-bold mb-3">
-                    <span className="bg-montenegro-gold/10 text-montenegro-gold px-3 py-1 rounded-full border border-montenegro-gold/40">{selectedPost.category}</span>
+                <div className="flex items-start justify-between gap-4">
+                  <button
+                    onClick={handleBackToBlog}
+                    className="w-max bg-white/15 border border-white/20 backdrop-blur-md text-white text-sm font-bold px-4 py-2 rounded-full flex items-center gap-2 hover:bg-white/25 transition"
+                  >
+                    <ArrowLeft size={16} /> Back to Blog
+                  </button>
+                  <div className="hidden md:flex items-center text-[11px] font-bold uppercase tracking-[0.2em] text-white/80 bg-white/10 border border-white/20 rounded-full px-4 py-2 backdrop-blur">
+                    Field-verified story
+                  </div>
+                </div>
+                <div className="bg-white/10 border border-white/20 backdrop-blur-md rounded-2xl p-6 shadow-2xl shadow-slate-900/40">
+                  <div className="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.2em] text-montenegro-gold font-bold mb-4">
+                    <span className="bg-montenegro-gold/10 text-montenegro-gold px-3 py-1 rounded-full border border-montenegro-gold/40 flex items-center gap-2"><Sparkles size={12} /> {selectedPost.category}</span>
                     <span className="text-white/80 flex items-center gap-2"><Calendar size={12} /> {selectedPost.date}</span>
                     <span className="text-white/80 flex items-center gap-2"><Clock size={12} /> {selectedPost.readingTime}</span>
                   </div>
-                  <h1 className="text-5xl md:text-6xl font-display font-bold text-white leading-tight mb-4">{selectedPost.title}</h1>
+                  <h1 className="text-4xl md:text-5xl font-display font-bold text-white leading-tight mb-4 drop-shadow-sm">{selectedPost.title}</h1>
+                  <p className="text-lg text-white/80 leading-relaxed mb-5">{selectedPost.excerpt}</p>
                   <div className="flex flex-wrap items-center gap-4 text-sm text-white/90">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3 bg-white/10 px-3 py-2 rounded-xl border border-white/20">
                       <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white font-bold">{selectedPost.author[0]}</div>
                       <div>
                         <p className="font-semibold">{selectedPost.author}</p>
@@ -212,21 +218,29 @@ const App: React.FC = () => {
                     <div className="flex items-center gap-2 text-white/80"><Sparkles size={16} /> Verified by two locals</div>
                     <div className="flex items-center gap-2 text-white/80"><Share2 size={16} /> Share-worthy insights only</div>
                   </div>
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    {selectedPost.tags.map(tag => (
+                      <span
+                        key={tag}
+                        className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/80 bg-white/10 border border-white/20 px-3 py-1 rounded-full"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
 
             <article className="max-w-4xl mx-auto px-4 pb-20 -mt-16 relative z-10">
               <div className="bg-white rounded-2xl shadow-2xl shadow-slate-900/10 border border-slate-100 p-8 md:p-12 space-y-10">
-                <div className="flex flex-wrap gap-3">
-                  {selectedPost.tags.map(tag => (
-                    <span key={tag} className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 bg-slate-50 border border-slate-200 px-3 py-1 rounded-full">{tag}</span>
-                  ))}
-                </div>
-
                 {selectedPost.content.map((section, index) => (
                   <section key={section.heading ?? index} className="space-y-3">
-                    {section.heading && <h2 className="text-2xl font-display font-bold text-slate-900 flex items-center gap-2"><Sparkles size={18} className="text-montenegro-red" /> {section.heading}</h2>}
+                    {section.heading && (
+                      <h2 className="text-2xl font-display font-bold text-slate-900 flex items-center gap-2">
+                        <Sparkles size={18} className="text-montenegro-red" /> {section.heading}
+                      </h2>
+                    )}
                     <p className="text-lg leading-relaxed text-slate-700">{section.body}</p>
                   </section>
                 ))}
@@ -239,7 +253,15 @@ const App: React.FC = () => {
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div className="flex items-center gap-3 text-sm text-slate-600">
                     <MessageCircle size={18} className="text-montenegro-red" />
-                    <span>Disagree with this list? <button onClick={() => document.getElementById('feedback-box')?.scrollIntoView({ behavior: 'smooth' })} className="text-montenegro-red font-semibold underline-offset-4 hover:underline">Tell us why</button></span>
+                    <span>
+                      Disagree with this list?{' '}
+                      <button
+                        onClick={() => document.getElementById('feedback-box')?.scrollIntoView({ behavior: 'smooth' })}
+                        className="text-montenegro-red font-semibold underline-offset-4 hover:underline"
+                      >
+                        Tell us why
+                      </button>
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-600 text-sm">
                     <Share2 size={16} />
@@ -326,27 +348,67 @@ const App: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="grid lg:grid-cols-2 gap-10 items-start">
-                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 shadow-sm">
-                    <h3 className="text-2xl font-display font-bold text-slate-900 mb-4">Ambassador Profile</h3>
-                    <ul className="space-y-3 text-slate-600 text-sm leading-relaxed">
-                      <li className="flex items-start gap-3"><span className="text-montenegro-red text-lg">•</span> Lives in or frequently visits the town they cover</li>
-                      <li className="flex items-start gap-3"><span className="text-montenegro-red text-lg">•</span> Loves verifying places in person and talking to owners</li>
-                      <li className="flex items-start gap-3"><span className="text-montenegro-red text-lg">•</span> Can share 1-2 photos per spot and quick notes in English or Montenegrin</li>
-                      <li className="flex items-start gap-3"><span className="text-montenegro-red text-lg">•</span> Keeps lists tight — we only publish a Top 5</li>
-                    </ul>
-                    <div className="mt-8 bg-white border border-slate-200 rounded-xl p-5 flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-full bg-montenegro-red/10 text-montenegro-red flex items-center justify-center">
-                        <PenLine size={18} />
-                      </div>
+                <div className="grid lg:grid-cols-2 gap-10 items-stretch">
+                  <div
+                    id="feedback-box"
+                    className="bg-slate-900 text-white rounded-2xl p-8 border border-slate-800 shadow-xl space-y-6 h-full flex flex-col"
+                  >
+                    <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-slate-900 font-semibold">What you get</p>
-                        <p className="text-slate-600 text-sm">Priority feature on city pages, contributor badges, and first say in monthly updates.</p>
+                        <p className="text-sm font-bold uppercase tracking-[0.2em] text-montenegro-gold">Disagree with a list?</p>
+                        <h3 className="text-2xl font-display font-bold">Report an issue</h3>
+                        <p className="text-sm text-slate-300 mt-1">
+                          Tell us why something shouldn’t be on the list and our curators will re-check it within 48 hours.
+                        </p>
                       </div>
+                      <div className="hidden md:flex items-center text-xs text-slate-300 gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/10">
+                        <AlertTriangle size={14} /> Fast triage
+                      </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <label className="flex flex-col text-sm font-semibold text-white">
+                        Your name (optional)
+                        <input
+                          className="mt-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white focus:border-montenegro-gold focus:ring-2 focus:ring-montenegro-gold/30 outline-none"
+                          placeholder="Anonymous works too"
+                        />
+                      </label>
+                      <label className="flex flex-col text-sm font-semibold text-white">
+                        Which list are you flagging?
+                        <input
+                          className="mt-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white placeholder:text-white/50 focus:border-montenegro-gold focus:ring-2 focus:ring-montenegro-gold/30 outline-none"
+                          placeholder="e.g. Kotor food"
+                        />
+                      </label>
+                      <label className="flex flex-col text-sm font-semibold text-white">
+                        Why should it change?
+                        <select className="mt-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white focus:border-montenegro-gold focus:ring-2 focus:ring-montenegro-gold/30 outline-none">
+                          <option className="text-slate-900">Closed down</option>
+                          <option className="text-slate-900">Quality slipped</option>
+                          <option className="text-slate-900">Safety concerns</option>
+                          <option className="text-slate-900">Better alternative exists</option>
+                          <option className="text-slate-900">Other</option>
+                        </select>
+                      </label>
+                      <label className="flex flex-col text-sm font-semibold text-white">
+                        Details that help us verify
+                        <textarea
+                          className="mt-2 rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-white placeholder:text-white/50 focus:border-montenegro-gold focus:ring-2 focus:ring-montenegro-gold/30 outline-none"
+                          rows={3}
+                          placeholder="Share dates, photos, or what you observed"
+                        ></textarea>
+                      </label>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-auto">
+                      <p className="text-xs text-slate-400 flex items-center gap-2">
+                        <Sparkles size={14} /> Fast triage by the curator team
+                      </p>
+                      <button className="px-6 py-3 bg-white text-slate-900 font-bold rounded-lg hover:bg-slate-200 transition-colors">Submit a report</button>
                     </div>
                   </div>
 
-                  <form className="bg-white border border-slate-200 rounded-2xl p-8 shadow-xl shadow-slate-200/60 space-y-6">
+                  <form className="bg-white border border-slate-200 rounded-2xl p-8 shadow-xl shadow-slate-200/60 space-y-6 h-full flex flex-col">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-bold uppercase tracking-[0.2em] text-montenegro-red">Apply</p>
@@ -361,27 +423,49 @@ const App: React.FC = () => {
                     <div className="grid md:grid-cols-2 gap-4">
                       <label className="flex flex-col text-sm font-semibold text-slate-700">
                         Full Name
-                        <input required className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none" placeholder="Your name" />
+                        <input
+                          required
+                          className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none"
+                          placeholder="Your name"
+                        />
                       </label>
                       <label className="flex flex-col text-sm font-semibold text-slate-700">
                         Email
-                        <input required type="email" className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none" placeholder="you@example.com" />
+                        <input
+                          required
+                          type="email"
+                          className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none"
+                          placeholder="you@example.com"
+                        />
                       </label>
                       <label className="flex flex-col text-sm font-semibold text-slate-700">
                         Town or Region
-                        <input className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none" placeholder="e.g. Kotor, Durmitor area" />
+                        <input
+                          className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none"
+                          placeholder="e.g. Kotor, Durmitor area"
+                        />
                       </label>
                       <label className="flex flex-col text-sm font-semibold text-slate-700">
                         Expertise
-                        <input className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none" placeholder="Food, hikes, architecture..." />
+                        <input
+                          className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none"
+                          placeholder="Food, hikes, architecture..."
+                        />
                       </label>
                       <label className="flex flex-col text-sm font-semibold text-slate-700 md:col-span-2">
                         Why do you want to join?
-                        <textarea className="mt-2 rounded-lg border border-slate-200 px-3 py-3 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none" rows={3} placeholder="Tell us how you explore your town"></textarea>
+                        <textarea
+                          className="mt-2 rounded-lg border border-slate-200 px-3 py-3 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none"
+                          rows={3}
+                          placeholder="Tell us how you explore your town"
+                        ></textarea>
                       </label>
                       <label className="flex flex-col text-sm font-semibold text-slate-700">
                         Links or Socials
-                        <input className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none" placeholder="Instagram, blog, maps list" />
+                        <input
+                          className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none"
+                          placeholder="Instagram, blog, maps list"
+                        />
                       </label>
                       <label className="flex flex-col text-sm font-semibold text-slate-700">
                         Availability
@@ -394,47 +478,26 @@ const App: React.FC = () => {
                       </label>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+                      <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">What we look for</p>
+                      <ul className="space-y-2 text-sm text-slate-600">
+                        <li className="flex items-start gap-2"><span className="text-montenegro-red text-lg leading-5">•</span> Lives in or frequently visits the town they cover</li>
+                        <li className="flex items-start gap-2"><span className="text-montenegro-red text-lg leading-5">•</span> Verifies places in person and talks to owners</li>
+                        <li className="flex items-start gap-2"><span className="text-montenegro-red text-lg leading-5">•</span> Can share 1-2 photos per spot and concise notes</li>
+                        <li className="flex items-start gap-2"><span className="text-montenegro-red text-lg leading-5">•</span> Keeps lists tight — we only publish a Top 5</li>
+                      </ul>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-auto">
                       <p className="text-xs text-slate-500">We never sell data. Your submission goes directly to the curation team.</p>
-                      <button type="submit" className="px-6 py-3 bg-montenegro-red text-white font-bold rounded-lg hover:bg-red-700 transition-colors shadow-lg shadow-red-500/30">
+                      <button
+                        type="submit"
+                        className="px-6 py-3 bg-montenegro-red text-white font-bold rounded-lg hover:bg-red-700 transition-colors shadow-lg shadow-red-500/30"
+                      >
                         Submit application
                       </button>
                     </div>
                   </form>
-                  <div id="feedback-box" className="bg-slate-900 text-white rounded-2xl p-8 border border-slate-800 shadow-xl space-y-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-montenegro-red/20 text-montenegro-gold flex items-center justify-center"><AlertTriangle size={24} /></div>
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-montenegro-gold">Report or Suggest</p>
-                        <h3 className="text-2xl font-display font-bold text-white">Disagree with a list?</h3>
-                        <p className="text-sm text-slate-300">Tell us what feels off or which spot should be reconsidered. A curator will follow up.</p>
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      <label className="flex flex-col text-sm font-semibold text-white">
-                        Which list or item?
-                        <input className="mt-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white placeholder:text-white/50 focus:border-montenegro-gold focus:ring-2 focus:ring-montenegro-gold/30 outline-none" placeholder="Town + category or the exact spot" />
-                      </label>
-                      <label className="flex flex-col text-sm font-semibold text-white">
-                        Why should it change?
-                        <select className="mt-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white focus:border-montenegro-gold focus:ring-2 focus:ring-montenegro-gold/30 outline-none">
-                          <option className="text-slate-900">Closed down</option>
-                          <option className="text-slate-900">Quality slipped</option>
-                          <option className="text-slate-900">Safety concerns</option>
-                          <option className="text-slate-900">Better alternative exists</option>
-                          <option className="text-slate-900">Other</option>
-                        </select>
-                      </label>
-                      <label className="flex flex-col text-sm font-semibold text-white">
-                        Details that help us verify
-                        <textarea className="mt-2 rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-white placeholder:text-white/50 focus:border-montenegro-gold focus:ring-2 focus:ring-montenegro-gold/30 outline-none" rows={3} placeholder="Share dates, photos, or what you observed"></textarea>
-                      </label>
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                      <p className="text-xs text-slate-400 flex items-center gap-2"><Sparkles size={14} /> Fast triage by the curator team</p>
-                      <button className="px-6 py-3 bg-white text-slate-900 font-bold rounded-lg hover:bg-slate-200 transition-colors">Submit a report</button>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -465,7 +528,7 @@ const App: React.FC = () => {
                     >
                       <div className="absolute inset-0 opacity-60 group-hover:opacity-80 transition-all" style={{ backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.6)), url(${post.hero})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
                       <div className="relative p-6 flex flex-col h-full backdrop-blur-[1px]">
-                        <div className="flex items-center justify-between text-xs font-bold uppercase tracking-[0.2em] text-montenegro-gold mb-3">
+                        <div className="flex items-center justify-between text-xs font-bold uppercase tracking-[0.2em] text-montenegro-gold mb-3 pr-12">
                           <span className="flex items-center gap-2"><Sparkles size={14} /> {post.category}</span>
                           <span className="text-white/80">{post.date}</span>
                         </div>
@@ -480,7 +543,11 @@ const App: React.FC = () => {
                       </div>
                       <div className="absolute -right-16 -top-16 h-32 w-32 rounded-full bg-montenegro-red/30 blur-3xl group-hover:blur-2xl transition-all"></div>
                       <div className="absolute -left-10 bottom-0 h-24 w-24 rounded-full bg-montenegro-gold/20 blur-3xl group-hover:blur-2xl transition-all"></div>
-                      {index === 0 && <div className="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-[0.3em] bg-white/10 border border-white/20 text-white px-3 py-1 rounded-full">New</div>}
+                      {index === 0 && (
+                        <div className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-[0.3em] bg-white/15 border border-white/30 text-white px-3 py-1 rounded-full backdrop-blur shadow-lg shadow-black/30">
+                          New
+                        </div>
+                      )}
                     </article>
                   ))}
                 </div>
