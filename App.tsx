@@ -409,7 +409,7 @@ const App: React.FC = () => {
                       </ul>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-auto">
+                    <div className="grid sm:grid-cols-[1fr_auto] items-center gap-3 mt-auto">
                       <p className="text-xs text-slate-400 flex items-center gap-2">
                         <Sparkles size={14} /> <span className="whitespace-nowrap">Fast triage by the curator team</span>
                       </p>
@@ -497,7 +497,7 @@ const App: React.FC = () => {
                       </ul>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-auto">
+                    <div className="grid sm:grid-cols-[1fr_auto] items-center gap-3 mt-auto">
                       <p className="text-xs text-slate-500">We never sell data. Your submission goes directly to the curation team.</p>
                       <button
                         type="submit"
