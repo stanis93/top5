@@ -279,7 +279,7 @@ const App: React.FC = () => {
               <div className="absolute inset-0 bg-[url('https://picsum.photos/1920/1080?blur=4')] opacity-20 bg-cover bg-center"></div>
               <div className="relative z-10 max-w-4xl mx-auto">
                 <span className="inline-block px-4 py-1.5 rounded-full border border-white/20 bg-white/5 text-xs font-bold tracking-widest uppercase mb-8 backdrop-blur-sm text-montenegro-gold">
-                  Authentic. Curated. Limited.
+                  Authentic. Curated. Limited. text
                 </span>
                 <h1 className="text-6xl md:text-8xl font-display font-bold mb-8 tracking-tight leading-none">
                   The <span className="text-montenegro-red">Real</span> Montenegro.
