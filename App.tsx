@@ -1,12 +1,14 @@
-
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { TownSelector } from './components/TownSelector';
 import { CategoryNav } from './components/CategoryNav';
 import { ContentList } from './components/ContentList';
 import { Logo } from './components/Logo';
-import { Town, Category } from './types';
+import { Town, Category, SanityBlogPost } from './types';
 import { CITY_OF_THE_MONTH, TOWNS } from './constants';
 import { ArrowLeft, Star, Users, MapPin, Instagram, Calendar, PenLine, Send, Clock, Sparkles, Share2, AlertTriangle, MessageCircle } from 'lucide-react';
+import { fetchBlogPosts, urlFor, fetchTowns } from './services/sanityClient';
+import './services/testSanity'; // Test Sanity data
+import { sendAmbassadorApplication, sendReportIssue, AmbassadorFormData, ReportFormData } from './services/emailService';
 
 type BlogPost = {
   slug: string;
@@ -48,7 +50,7 @@ const BLOG_POSTS: BlogPost[] = [
         body: 'We dropped a waterfront cafe after staff changed and quality slipped, and swapped in a family-run bakery that kept its pre-dawn hours for night-shift workers.',
       },
       {
-        heading: 'What’s next',
+        heading: 'What\'s next',
         body: 'We are opening a public proof-of-visit form so locals can flag closures faster. Expect micro-updates every Friday until the next city is crowned.',
       },
     ],
@@ -79,7 +81,7 @@ const BLOG_POSTS: BlogPost[] = [
       },
       {
         heading: 'Why these made the cut',
-        body: 'Each spot has safe footing, zero tickets, and quick exit routes. We removed two “Instagram hills” because parking blocks locals from getting to work.',
+        body: 'Each spot has safe footing, zero tickets, and quick exit routes. We removed two "Instagram hills" because parking blocks locals from getting to work.',
       },
     ],
     takeaway: 'Sunrise spots stay good only when we keep them light on crowds and heavy on respect for locals.',
@@ -121,21 +123,160 @@ const App: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category>(Category.HIDDEN_GEMS);
   const [language, setLanguage] = useState<'en' | 'mn'>('en');
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>(BLOG_POSTS);
+  const [blogLoading, setBlogLoading] = useState<boolean>(true);
+  const [towns, setTowns] = useState<Town[]>(TOWNS); // Initialize with hardcoded, update if Sanity has data
+
+  // Form States
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const [reportStatus, setReportStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [reportForm, setReportForm] = useState<ReportFormData>({
+    name: '',
+    listName: '',
+    reason: 'Closed down',
+    details: ''
+  });
+
+  const [isSubmittingAmbassador, setIsSubmittingAmbassador] = useState(false);
+  const [ambassadorStatus, setAmbassadorStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [ambassadorForm, setAmbassadorForm] = useState<AmbassadorFormData>({
+    name: '',
+    email: '',
+    town: '',
+    expertise: '',
+    motivation: '',
+    links: '',
+    availability: '1-2 hrs / week'
+  });
+
+  const handleReportSubmit = async () => {
+    if (!reportForm.details) {
+      alert('Please provide some details for us to verify.');
+      return;
+    }
+
+    setIsSubmittingReport(true);
+    setReportStatus('idle');
+
+    const success = await sendReportIssue(reportForm);
+
+    setIsSubmittingReport(false);
+    if (success) {
+      setReportStatus('success');
+      setReportForm({ name: '', listName: '', reason: 'Closed down', details: '' }); // Reset
+    } else {
+      setReportStatus('error');
+    }
+  };
+
+  const handleAmbassadorSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmittingAmbassador(true);
+    setAmbassadorStatus('idle');
+
+    const success = await sendAmbassadorApplication(ambassadorForm);
+
+    setIsSubmittingAmbassador(false);
+    if (success) {
+      setAmbassadorStatus('success');
+      setAmbassadorForm({ // Reset
+        name: '',
+        email: '',
+        town: '',
+        expertise: '',
+        motivation: '',
+        links: '',
+        availability: '1-2 hrs / week'
+      });
+    } else {
+      setAmbassadorStatus('error');
+    }
+  };
+
+  // Fetch blog posts from Sanity on mount
+  useEffect(() => {
+    const loadBlogPosts = async () => {
+      setBlogLoading(true);
+      try {
+        const sanityPosts = await fetchBlogPosts();
+
+        if (sanityPosts && sanityPosts.length > 0) {
+          // Transform Sanity posts to app format
+          const transformedPosts: BlogPost[] = sanityPosts.map((post) => ({
+            slug: post.slug.current,
+            title: post.title,
+            category: post.category,
+            author: post.author.name,
+            authorTitle: post.author.title,
+            excerpt: post.excerpt,
+            date: post.publishedAt
+              ? new Date(post.publishedAt).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              })
+              : 'Recent',
+            readingTime: post.readingTime || '5 min read',
+            hero: urlFor(post.hero).width(1200).height(800).url(),
+            tags: post.tags || [],
+            content: post.content,
+            takeaway: post.takeaway,
+          }));
+
+          setBlogPosts(transformedPosts);
+        } else {
+          // Fallback to hardcoded posts if no Sanity data
+          setBlogPosts(BLOG_POSTS);
+        }
+      } catch (error) {
+        console.error('Error loading blog posts:', error);
+        // Fallback to hardcoded posts on error
+        setBlogPosts(BLOG_POSTS);
+      } finally {
+        setBlogLoading(false);
+      }
+    };
+
+    loadBlogPosts();
+    loadBlogPosts();
+  }, []);
+
+  // Fetch towns from Sanity
+  useEffect(() => {
+    const loadTowns = async () => {
+      try {
+        const sanityTowns = await fetchTowns();
+        if (sanityTowns && sanityTowns.length > 0) {
+          const mappedTowns: Town[] = sanityTowns.map(t => ({
+            id: t.slug.current,
+            name: t.name,
+            region: t.region,
+            tagline: t.tagline,
+            imageUrl: urlFor(t.image).width(800).height(600).url()
+          }));
+          setTowns(mappedTowns);
+        }
+      } catch (error) {
+        console.error("Failed to load towns from Sanity, using fallback.", error);
+      }
+    };
+    loadTowns();
+  }, []);
 
   const handleBackToMap = () => {
     setSelectedTown(null);
     setSelectedCategory(Category.HIDDEN_GEMS);
-    window.scrollTo(0,0);
+    window.scrollTo(0, 0);
   };
 
   const handleBackToBlog = () => {
     setSelectedPost(null);
-    window.scrollTo(0,0);
+    window.scrollTo(0, 0);
   };
 
-  const cityOfMonth = TOWNS.find(t => t.id === CITY_OF_THE_MONTH.townId);
+  const cityOfMonth = towns.find(t => t.id === CITY_OF_THE_MONTH.townId);
 
-  const sortedBlogPosts = useMemo(() => [...BLOG_POSTS].sort((a, b) => b.date.localeCompare(a.date)), []);
+  const sortedBlogPosts = useMemo(() => [...blogPosts].sort((a, b) => b.date.localeCompare(a.date)), [blogPosts]);
 
   return (
     <div className="min-h-screen flex flex-col font-sans text-slate-900 bg-slate-50">
@@ -148,14 +289,14 @@ const App: React.FC = () => {
             </div>
             {/* Language Toggle */}
             <div className="flex items-center space-x-1 text-sm font-bold tracking-wide border-l border-slate-200 pl-6 h-8 select-none">
-              <button 
+              <button
                 onClick={() => setLanguage('en')}
                 className={`transition-colors ${language === 'en' ? 'text-montenegro-red' : 'text-slate-300 hover:text-slate-500'}`}
               >
                 EN
               </button>
               <span className="text-slate-200">/</span>
-              <button 
+              <button
                 onClick={() => setLanguage('mn')}
                 className={`transition-colors ${language === 'mn' ? 'text-montenegro-red' : 'text-slate-300 hover:text-slate-500'}`}
               >
@@ -163,7 +304,7 @@ const App: React.FC = () => {
               </button>
             </div>
           </div>
-          
+
           <div className="hidden md:flex items-center space-x-8">
             <nav className="flex space-x-6 text-sm font-medium text-slate-600">
               <a href="#" className="hover:text-montenegro-red transition-colors">About Us</a>
@@ -279,7 +420,7 @@ const App: React.FC = () => {
               <div className="absolute inset-0 bg-[url('https://picsum.photos/1920/1080?blur=4')] opacity-20 bg-cover bg-center"></div>
               <div className="relative z-10 max-w-4xl mx-auto">
                 <span className="inline-block px-4 py-1.5 rounded-full border border-white/20 bg-white/5 text-xs font-bold tracking-widest uppercase mb-8 backdrop-blur-sm text-montenegro-gold">
-                  Authentic. Curated. Limited. text
+                  Authentic. Curated. Limited.
                 </span>
                 <h1 className="text-6xl md:text-8xl font-display font-bold mb-8 tracking-tight leading-none">
                   The <span className="text-montenegro-red">Real</span> Montenegro.
@@ -298,17 +439,17 @@ const App: React.FC = () => {
                   <div className="md:w-3/5 h-72 md:h-96 relative overflow-hidden rounded-2xl">
                     <img src={cityOfMonth.imageUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={cityOfMonth.name} />
                     <div className="absolute top-4 left-4 flex gap-2">
-                       <div className="bg-slate-900 text-white px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider flex items-center shadow-lg border border-white/10">
-                         <Star size={12} className="mr-1.5 text-montenegro-gold fill-current" /> City of the Month
-                       </div>
-                       <div className="bg-montenegro-red text-white px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider shadow-lg">
-                         {CITY_OF_THE_MONTH.month}
-                       </div>
+                      <div className="bg-slate-900 text-white px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider flex items-center shadow-lg border border-white/10">
+                        <Star size={12} className="mr-1.5 text-montenegro-gold fill-current" /> City of the Month
+                      </div>
+                      <div className="bg-montenegro-red text-white px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider shadow-lg">
+                        {CITY_OF_THE_MONTH.month}
+                      </div>
                     </div>
                   </div>
                   <div className="md:w-2/5 p-8 md:p-12 flex flex-col justify-center bg-white relative">
                     <div className="absolute top-0 right-0 p-8 opacity-5 text-9xl font-display font-bold select-none overflow-hidden">
-                       {CITY_OF_THE_MONTH.month.substring(0,3).toUpperCase()}
+                      {CITY_OF_THE_MONTH.month.substring(0, 3).toUpperCase()}
                     </div>
 
                     <span className="text-montenegro-red font-bold tracking-widest text-xs uppercase mb-2">Editor's Choice • {CITY_OF_THE_MONTH.month}</span>
@@ -332,7 +473,7 @@ const App: React.FC = () => {
             )}
 
             {/* Selector */}
-            <TownSelector onSelectTown={setSelectedTown} />
+            <TownSelector towns={towns} onSelectTown={setSelectedTown} />
 
             {/* Ambassador Program Section */}
             <div id="ambassadors" className="bg-white py-24 border-t border-slate-100 mt-12">
@@ -371,6 +512,8 @@ const App: React.FC = () => {
                         <label className="flex flex-col text-sm font-semibold text-white">
                           Your name (optional)
                           <input
+                            value={reportForm.name}
+                            onChange={(e) => setReportForm({ ...reportForm, name: e.target.value })}
                             className="mt-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white focus:border-montenegro-gold focus:ring-2 focus:ring-montenegro-gold/30 outline-none"
                             placeholder="Anonymous works too"
                           />
@@ -378,23 +521,31 @@ const App: React.FC = () => {
                         <label className="flex flex-col text-sm font-semibold text-white">
                           Which list are you flagging?
                           <input
+                            value={reportForm.listName}
+                            onChange={(e) => setReportForm({ ...reportForm, listName: e.target.value })}
                             className="mt-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white placeholder:text-white/50 focus:border-montenegro-gold focus:ring-2 focus:ring-montenegro-gold/30 outline-none"
                             placeholder="e.g. Kotor food"
                           />
                         </label>
                         <label className="flex flex-col text-sm font-semibold text-white">
                           Why should it change?
-                          <select className="mt-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white focus:border-montenegro-gold focus:ring-2 focus:ring-montenegro-gold/30 outline-none">
-                            <option className="text-slate-900">Closed down</option>
-                            <option className="text-slate-900">Quality slipped</option>
-                            <option className="text-slate-900">Safety concerns</option>
-                            <option className="text-slate-900">Better alternative exists</option>
-                            <option className="text-slate-900">Other</option>
+                          <select
+                            value={reportForm.reason}
+                            onChange={(e) => setReportForm({ ...reportForm, reason: e.target.value })}
+                            className="mt-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white focus:border-montenegro-gold focus:ring-2 focus:ring-montenegro-gold/30 outline-none"
+                          >
+                            <option className="text-slate-900" value="Closed down">Closed down</option>
+                            <option className="text-slate-900" value="Quality slipped">Quality slipped</option>
+                            <option className="text-slate-900" value="Safety concerns">Safety concerns</option>
+                            <option className="text-slate-900" value="Better alternative exists">Better alternative exists</option>
+                            <option className="text-slate-900" value="Other">Other</option>
                           </select>
                         </label>
                         <label className="flex flex-col text-sm font-semibold text-white">
                           Details that help us verify
                           <textarea
+                            value={reportForm.details}
+                            onChange={(e) => setReportForm({ ...reportForm, details: e.target.value })}
                             className="mt-2 rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-white placeholder:text-white/50 focus:border-montenegro-gold focus:ring-2 focus:ring-montenegro-gold/30 outline-none"
                             rows={3}
                             placeholder="Share dates, photos, or what you observed"
@@ -412,102 +563,153 @@ const App: React.FC = () => {
                     </div>
 
                     <div className="grid sm:grid-cols-[1fr_auto] items-center gap-3 mt-auto pt-4">
-                      <p className="text-xs text-slate-400 flex items-center gap-2">
-                        <Sparkles size={14} /> <span className="whitespace-nowrap">Fast triage by the curator team</span>
-                      </p>
-                      <button className="px-5 py-2.5 bg-white text-slate-900 font-bold rounded-lg hover:bg-slate-200 transition-colors">Submit a report</button>
+                      {reportStatus === 'success' ? (
+                        <p className="text-green-400 font-bold flex items-center gap-2">
+                          <Sparkles size={16} /> Report sent! We'll look into it.
+                        </p>
+                      ) : reportStatus === 'error' ? (
+                        <p className="text-red-400 font-bold flex items-center gap-2">
+                          <AlertTriangle size={16} /> Something went wrong. Try again.
+                        </p>
+                      ) : (
+                        <p className="text-xs text-slate-400 flex items-center gap-2">
+                          <Sparkles size={14} /> <span className="whitespace-nowrap">Fast triage by the curator team</span>
+                        </p>
+                      )}
+
+                      <button
+                        onClick={handleReportSubmit}
+                        disabled={isSubmittingReport || reportStatus === 'success'}
+                        className={`px-5 py-2.5 font-bold rounded-lg transition-colors ${reportStatus === 'success'
+                          ? 'bg-green-500 text-white cursor-default'
+                          : 'bg-white text-slate-900 hover:bg-slate-200'
+                          } ${isSubmittingReport ? 'opacity-70 cursor-wait' : ''}`}
+                      >
+                        {isSubmittingReport ? 'Sending...' : reportStatus === 'success' ? 'Sent' : 'Submit a report'}
+                      </button>
                     </div>
                   </div>
 
-                  <form className="bg-white border border-slate-200 rounded-2xl p-8 shadow-xl shadow-slate-200/60 h-full flex flex-col">
+                  <form onSubmit={handleAmbassadorSubmit} className="bg-white border border-slate-200 rounded-2xl p-8 shadow-xl shadow-slate-200/60 h-full flex flex-col">
                     <div className="space-y-6 flex-1 flex flex-col">
                       <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <p className="text-sm font-bold uppercase tracking-[0.2em] text-montenegro-red">Apply</p>
-                        <h3 className="text-2xl font-display font-bold text-slate-900">Become an Ambassador</h3>
-                        <p className="text-sm text-slate-500 mt-1">Share the essentials and we'll reach out within 48 hours.</p>
+                        <div>
+                          <p className="text-sm font-bold uppercase tracking-[0.2em] text-montenegro-red">Apply</p>
+                          <h3 className="text-2xl font-display font-bold text-slate-900">Become an Ambassador</h3>
+                          <p className="text-sm text-slate-500 mt-1">Share the essentials and we'll reach out within 48 hours.</p>
+                        </div>
+                        <div className="hidden md:flex items-center text-[10px] text-slate-500 gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200 whitespace-nowrap">
+                          <Send size={12} /> Secure form
+                        </div>
                       </div>
-                      <div className="hidden md:flex items-center text-[10px] text-slate-500 gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200 whitespace-nowrap">
-                        <Send size={12} /> Secure form
+
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <label className="flex flex-col text-sm font-semibold text-slate-700">
+                          Full Name
+                          <input
+                            required
+                            value={ambassadorForm.name}
+                            onChange={(e) => setAmbassadorForm({ ...ambassadorForm, name: e.target.value })}
+                            className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none"
+                            placeholder="Your name"
+                          />
+                        </label>
+                        <label className="flex flex-col text-sm font-semibold text-slate-700">
+                          Email
+                          <input
+                            required
+                            type="email"
+                            value={ambassadorForm.email}
+                            onChange={(e) => setAmbassadorForm({ ...ambassadorForm, email: e.target.value })}
+                            className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none"
+                            placeholder="you@example.com"
+                          />
+                        </label>
+                        <label className="flex flex-col text-sm font-semibold text-slate-700">
+                          Town or Region
+                          <input
+                            value={ambassadorForm.town}
+                            onChange={(e) => setAmbassadorForm({ ...ambassadorForm, town: e.target.value })}
+                            className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none"
+                            placeholder="e.g. Kotor, Durmitor area"
+                          />
+                        </label>
+                        <label className="flex flex-col text-sm font-semibold text-slate-700">
+                          Expertise
+                          <input
+                            value={ambassadorForm.expertise}
+                            onChange={(e) => setAmbassadorForm({ ...ambassadorForm, expertise: e.target.value })}
+                            className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none"
+                            placeholder="Food, hikes, architecture..."
+                          />
+                        </label>
+                        <label className="flex flex-col text-sm font-semibold text-slate-700 md:col-span-2">
+                          Why do you want to join?
+                          <textarea
+                            value={ambassadorForm.motivation}
+                            onChange={(e) => setAmbassadorForm({ ...ambassadorForm, motivation: e.target.value })}
+                            className="mt-2 rounded-lg border border-slate-200 px-3 py-3 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none"
+                            rows={3}
+                            placeholder="Tell us how you explore your town"
+                          ></textarea>
+                        </label>
+                        <label className="flex flex-col text-sm font-semibold text-slate-700">
+                          Links or Socials
+                          <input
+                            value={ambassadorForm.links}
+                            onChange={(e) => setAmbassadorForm({ ...ambassadorForm, links: e.target.value })}
+                            className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none"
+                            placeholder="Instagram, blog, maps list"
+                          />
+                        </label>
+                        <label className="flex flex-col text-sm font-semibold text-slate-700">
+                          Availability
+                          <select
+                            value={ambassadorForm.availability}
+                            onChange={(e) => setAmbassadorForm({ ...ambassadorForm, availability: e.target.value })}
+                            className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none"
+                          >
+                            <option>1-2 hrs / week</option>
+                            <option>3-5 hrs / week</option>
+                            <option>Weekend drops</option>
+                            <option>Seasonal (summer/winter)</option>
+                          </select>
+                        </label>
                       </div>
-                    </div>
 
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <label className="flex flex-col text-sm font-semibold text-slate-700">
-                        Full Name
-                        <input
-                          required
-                          className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none"
-                          placeholder="Your name"
-                        />
-                      </label>
-                      <label className="flex flex-col text-sm font-semibold text-slate-700">
-                        Email
-                        <input
-                          required
-                          type="email"
-                          className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none"
-                          placeholder="you@example.com"
-                        />
-                      </label>
-                      <label className="flex flex-col text-sm font-semibold text-slate-700">
-                        Town or Region
-                        <input
-                          className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none"
-                          placeholder="e.g. Kotor, Durmitor area"
-                        />
-                      </label>
-                      <label className="flex flex-col text-sm font-semibold text-slate-700">
-                        Expertise
-                        <input
-                          className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none"
-                          placeholder="Food, hikes, architecture..."
-                        />
-                      </label>
-                      <label className="flex flex-col text-sm font-semibold text-slate-700 md:col-span-2">
-                        Why do you want to join?
-                        <textarea
-                          className="mt-2 rounded-lg border border-slate-200 px-3 py-3 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none"
-                          rows={3}
-                          placeholder="Tell us how you explore your town"
-                        ></textarea>
-                      </label>
-                      <label className="flex flex-col text-sm font-semibold text-slate-700">
-                        Links or Socials
-                        <input
-                          className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none"
-                          placeholder="Instagram, blog, maps list"
-                        />
-                      </label>
-                      <label className="flex flex-col text-sm font-semibold text-slate-700">
-                        Availability
-                        <select className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-montenegro-red focus:ring-2 focus:ring-montenegro-red/20 outline-none">
-                          <option>1-2 hrs / week</option>
-                          <option>3-5 hrs / week</option>
-                          <option>Weekend drops</option>
-                          <option>Seasonal (summer/winter)</option>
-                        </select>
-                      </label>
-                    </div>
-
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
-                      <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">What we look for</p>
-                      <ul className="space-y-2 text-sm text-slate-600">
-                        <li className="flex items-start gap-2"><span className="text-montenegro-red text-lg leading-5">•</span> Lives in or frequently visits the town they cover</li>
-                        <li className="flex items-start gap-2"><span className="text-montenegro-red text-lg leading-5">•</span> Verifies places in person and talks to owners</li>
-                        <li className="flex items-start gap-2"><span className="text-montenegro-red text-lg leading-5">•</span> Can share 1-2 photos per spot and concise notes</li>
-                        <li className="flex items-start gap-2"><span className="text-montenegro-red text-lg leading-5">•</span> Keeps lists tight — we only publish a Top 5</li>
-                      </ul>
-                    </div>
+                      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">What we look for</p>
+                        <ul className="space-y-2 text-sm text-slate-600">
+                          <li className="flex items-start gap-2"><span className="text-montenegro-red text-lg leading-5">•</span> Lives in or frequently visits the town they cover</li>
+                          <li className="flex items-start gap-2"><span className="text-montenegro-red text-lg leading-5">•</span> Verifies places in person and talks to owners</li>
+                          <li className="flex items-start gap-2"><span className="text-montenegro-red text-lg leading-5">•</span> Can share 1-2 photos per spot and concise notes</li>
+                          <li className="flex items-start gap-2"><span className="text-montenegro-red text-lg leading-5">•</span> Keeps lists tight — we only publish a Top 5</li>
+                        </ul>
+                      </div>
                     </div>
 
                     <div className="grid sm:grid-cols-[1fr_auto] items-center gap-3 mt-auto pt-4">
-                      <p className="text-xs text-slate-500">We never sell data. Your submission goes directly to the curation team.</p>
+                      {ambassadorStatus === 'success' ? (
+                        <p className="text-green-600 font-bold flex items-center gap-2">
+                          <Sparkles size={16} /> Application sent! We'll be in touch.
+                        </p>
+                      ) : ambassadorStatus === 'error' ? (
+                        <p className="text-red-500 font-bold flex items-center gap-2">
+                          <AlertTriangle size={16} /> Error sending application. Check console.
+                        </p>
+                      ) : (
+                        <p className="text-xs text-slate-500">We never sell data. Your submission goes directly to the curation team.</p>
+                      )}
+
                       <button
                         type="submit"
-                        className="px-5 py-2.5 bg-montenegro-red text-white font-bold rounded-lg hover:bg-red-700 transition-colors shadow-lg shadow-red-500/30 whitespace-nowrap"
+                        disabled={isSubmittingAmbassador || ambassadorStatus === 'success'}
+                        className={`px-5 py-2.5 font-bold rounded-lg transition-colors shadow-lg shadow-red-500/30 whitespace-nowrap ${ambassadorStatus === 'success'
+                          ? 'bg-green-600 text-white cursor-default'
+                          : 'bg-montenegro-red text-white hover:bg-red-700'
+                          } ${isSubmittingAmbassador ? 'opacity-70 cursor-wait' : ''}`}
                       >
-                        Submit application
+                        {isSubmittingAmbassador ? 'Sending...' : ambassadorStatus === 'success' ? 'Applied!' : 'Submit application'}
                       </button>
                     </div>
                   </form>
@@ -613,7 +815,7 @@ const App: React.FC = () => {
           <div className="col-span-1 md:col-span-1">
             <Logo className="text-white text-3xl mb-6" />
             <p className="text-sm leading-relaxed text-slate-500">
-              The anti-algorithm guide. <br/>
+              The anti-algorithm guide. <br />
               Hand-picked Top 5 lists for every corner of Montenegro.
             </p>
           </div>
@@ -645,7 +847,7 @@ const App: React.FC = () => {
         </div>
         <div className="max-w-7xl mx-auto px-4 mt-16 pt-8 border-t border-slate-800 text-xs flex justify-between items-center text-slate-600">
           <span>&copy; {new Date().getFullYear()} Top 5 Montenegro.</span>
-          <span className="flex items-center gap-1"><MapPin size={12}/> Made in Montenegro</span>
+          <span className="flex items-center gap-1"><MapPin size={12} /> Made in Montenegro</span>
         </div>
       </footer>
     </div>

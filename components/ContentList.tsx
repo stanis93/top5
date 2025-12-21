@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { fetchTop5List } from '../services/geminiService';
+import { fetchListItems, urlFor } from '../services/sanityClient';
 import { ListItem, Category, Town } from '../types';
 import { CheckCircle2, AlertCircle, MapPin, RefreshCw, ThumbsUp, ThumbsDown, RotateCcw } from 'lucide-react';
 
@@ -33,6 +34,7 @@ interface ItemWithStats extends ListItem {
   likes: number;
   dislikes: number;
   userVote: 'like' | 'dislike' | null;
+  imageUrl?: string;
 }
 
 export const ContentList: React.FC<ContentListProps> = ({ town, category, language }) => {
@@ -59,25 +61,60 @@ export const ContentList: React.FC<ContentListProps> = ({ town, category, langua
       setReserveItem(null);
 
       try {
-        const data = await fetchTop5List(town.name, category, language);
-        
-        if (isMounted && data && data.items.length > 0) {
-          // Process items with simulated stats
-          const processedItems = data.items.map((item, idx) => ({
-            ...item,
+        // First, try to fetch from Sanity
+        console.log(`🔍 Fetching from Sanity: town="${town.id}", category="${category}"`);
+        const sanityItems = await fetchListItems(town.id, category);
+        console.log(`📦 Sanity returned ${sanityItems?.length || 0} items:`, sanityItems);
+
+        if (sanityItems && sanityItems.length > 0) {
+          // Transform Sanity items to app format
+          const processedItems: ItemWithStats[] = sanityItems.map((item, idx) => ({
+            name: item.name,
+            description: item.description,
+            reason: item.reason,
+            location: item.location?.address,
+            verificationStatus: item.status === 'published' ? 'verified' : 'needs_verification',
+            imageKeyword: item.name,
+            imageUrl: item.images && item.images.length > 0
+              ? urlFor(item.images[0]).width(600).height(800).url()
+              : undefined,
             id: idx,
             likes: getRandomVotes(),
             dislikes: Math.floor(Math.random() * 5),
             userVote: null as 'like' | 'dislike' | null
           }));
 
-          // Take first 5 for display, 6th as reserve
-          setDisplayItems(processedItems.slice(0, 5));
-          if (processedItems.length > 5) {
-            setReserveItem(processedItems[5]);
+          if (isMounted) {
+            console.log('✅ Using Sanity data');
+            setDisplayItems(processedItems.slice(0, 5));
+            if (processedItems.length > 5) {
+              setReserveItem(processedItems[5]);
+            }
           }
-        } else if (isMounted) {
-          setError(language === 'mn' ? "Naše lokalne arhive su trenutno nedostupne." : "Our local archives are currently unavailable.");
+        } else {
+          // Fallback to Gemini service if no Sanity data
+          console.log('⚠️ No Sanity data, falling back to Gemini');
+          const data = await fetchTop5List(town.name, category, language);
+          console.log(data);
+
+          if (isMounted && data && data.items.length > 0) {
+            // Process items with simulated stats
+            const processedItems = data.items.map((item, idx) => ({
+              ...item,
+              id: idx,
+              likes: getRandomVotes(),
+              dislikes: Math.floor(Math.random() * 5),
+              userVote: null as 'like' | 'dislike' | null
+            }));
+
+            // Take first 5 for display, 6th as reserve
+            setDisplayItems(processedItems.slice(0, 5));
+            if (processedItems.length > 5) {
+              setReserveItem(processedItems[5]);
+            }
+          } else if (isMounted) {
+            setError(language === 'mn' ? "Naše lokalne arhive su trenutno nedostupne." : "Our local archives are currently unavailable.");
+          }
         }
       } catch (err) {
         if (isMounted) {
@@ -93,17 +130,17 @@ export const ContentList: React.FC<ContentListProps> = ({ town, category, langua
 
     loadData();
 
-    return () => { 
-      isMounted = false; 
+    return () => {
+      isMounted = false;
       clearInterval(msgInterval);
     };
   }, [town.id, category, language]);
 
   const handleVote = (index: number, type: 'like' | 'dislike') => {
-    setDisplayItems(current => 
+    setDisplayItems(current =>
       current.map((item, i) => {
         if (i !== index) return item;
-        
+
         // If unvoting
         if (item.userVote === type) {
           return {
@@ -116,10 +153,10 @@ export const ContentList: React.FC<ContentListProps> = ({ town, category, langua
         // If changing vote
         const updates: any = { userVote: type };
         updates[type === 'like' ? 'likes' : 'dislikes'] = item[type === 'like' ? 'likes' : 'dislikes'] + 1;
-        
+
         if (item.userVote) {
-           const prevType = type === 'like' ? 'dislikes' : 'likes';
-           updates[prevType] = item[prevType] - 1;
+          const prevType = type === 'like' ? 'dislikes' : 'likes';
+          updates[prevType] = item[prevType] - 1;
         }
 
         return { ...item, ...updates };
@@ -133,7 +170,7 @@ export const ContentList: React.FC<ContentListProps> = ({ town, category, langua
     // Replace the item at index with reserve
     setDisplayItems(current => {
       const newList = [...current];
-      newList[indexToRemove] = { ...reserveItem, id: Date.now() }; 
+      newList[indexToRemove] = { ...reserveItem, id: Date.now() };
       return newList;
     });
     setReserveItem(null); // Used the reserve
@@ -143,8 +180,8 @@ export const ContentList: React.FC<ContentListProps> = ({ town, category, langua
     return (
       <div className="flex flex-col items-center justify-center py-32 animate-pulse">
         <div className="relative w-20 h-20 mb-6">
-           <div className="absolute inset-0 border-4 border-slate-200 rounded-full"></div>
-           <div className="absolute inset-0 border-4 border-montenegro-red border-t-transparent rounded-full animate-spin"></div>
+          <div className="absolute inset-0 border-4 border-slate-200 rounded-full"></div>
+          <div className="absolute inset-0 border-4 border-montenegro-red border-t-transparent rounded-full animate-spin"></div>
         </div>
         <p className="text-slate-600 font-display font-medium text-lg tracking-wide">{loadingMsg}</p>
       </div>
@@ -157,7 +194,7 @@ export const ContentList: React.FC<ContentListProps> = ({ town, category, langua
         <div className="text-red-500 mb-4 flex justify-center"><AlertCircle size={48} /></div>
         <h3 className="text-xl font-bold text-slate-900 mb-2">{language === 'mn' ? "Nedostupno" : "Unavailable"}</h3>
         <p className="text-slate-600 mb-6">{error}</p>
-        <button 
+        <button
           onClick={() => window.location.reload()}
           className="px-6 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 mx-auto"
         >
@@ -180,21 +217,21 @@ export const ContentList: React.FC<ContentListProps> = ({ town, category, langua
 
       <div className="space-y-12">
         {displayItems.map((item, index) => (
-          <div 
-            key={item.id} 
+          <div
+            key={item.id}
             className="group relative bg-white rounded-2xl p-0 md:p-0 shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100 overflow-hidden"
           >
             <div className="flex flex-col md:flex-row">
-               {/* Rank Marker */}
+              {/* Rank Marker */}
               <div className="absolute left-0 top-0 bg-slate-900 text-white w-12 h-12 flex items-center justify-center font-display font-bold text-xl rounded-br-2xl z-20">
                 {index + 1}
               </div>
 
               {/* Image Side */}
               <div className="w-full md:w-2/5 h-64 md:h-auto relative overflow-hidden">
-                <img 
-                  src={`https://picsum.photos/600/800?random=${index + town.id.length + (item.userVote ? 100 : 0)}`} 
-                  alt={item.name} 
+                <img
+                  src={item.imageUrl || `https://picsum.photos/600/800?random=${index + town.id.length + (item.userVote ? 100 : 0)}`}
+                  alt={item.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent md:hidden"></div>
@@ -202,7 +239,7 @@ export const ContentList: React.FC<ContentListProps> = ({ town, category, langua
 
               {/* Content Side */}
               <div className="flex-1 p-6 md:p-8 flex flex-col justify-center relative">
-                
+
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="text-3xl font-display font-bold text-slate-900 leading-tight">
                     {item.name}
@@ -231,7 +268,7 @@ export const ContentList: React.FC<ContentListProps> = ({ town, category, langua
                 </p>
 
                 <div className="bg-slate-50 p-4 rounded-xl border-l-4 border-montenegro-red mb-6">
-                   <p className="text-sm text-slate-800 italic">
+                  <p className="text-sm text-slate-800 italic">
                     "{item.reason}"
                   </p>
                 </div>
@@ -239,15 +276,15 @@ export const ContentList: React.FC<ContentListProps> = ({ town, category, langua
                 {/* Interaction Bar */}
                 <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
                   <div className="flex items-center space-x-6">
-                    <button 
+                    <button
                       onClick={() => handleVote(index, 'like')}
                       className={`flex items-center space-x-2 text-sm font-bold transition-colors ${item.userVote === 'like' ? 'text-green-600' : 'text-slate-400 hover:text-green-600'}`}
                     >
                       <ThumbsUp size={18} className={item.userVote === 'like' ? 'fill-current' : ''} />
                       <span>{item.likes}</span>
                     </button>
-                    
-                    <button 
+
+                    <button
                       onClick={() => handleVote(index, 'dislike')}
                       className={`flex items-center space-x-2 text-sm font-bold transition-colors ${item.userVote === 'dislike' ? 'text-red-500' : 'text-slate-400 hover:text-red-500'}`}
                     >
@@ -256,16 +293,16 @@ export const ContentList: React.FC<ContentListProps> = ({ town, category, langua
                   </div>
 
                   {item.userVote === 'dislike' && reserveItem ? (
-                     <button 
-                       onClick={() => handleSwapItem(index)}
-                       className="flex items-center space-x-2 text-xs text-white bg-montenegro-red hover:bg-red-700 px-3 py-1.5 rounded-lg font-medium animate-in slide-in-from-right-2 transition-colors shadow-sm"
-                     >
-                       <RotateCcw size={12} />
-                       <span>{language === 'mn' ? "Zamijeni" : "Incorrect? Swap it"}</span>
-                     </button>
+                    <button
+                      onClick={() => handleSwapItem(index)}
+                      className="flex items-center space-x-2 text-xs text-white bg-montenegro-red hover:bg-red-700 px-3 py-1.5 rounded-lg font-medium animate-in slide-in-from-right-2 transition-colors shadow-sm"
+                    >
+                      <RotateCcw size={12} />
+                      <span>{language === 'mn' ? "Zamijeni" : "Incorrect? Swap it"}</span>
+                    </button>
                   ) : (
                     <span className="text-[10px] text-slate-300 font-medium uppercase tracking-widest">
-                       {language === 'mn' ? "Lokalni izbor" : "Community Curated"}
+                      {language === 'mn' ? "Lokalni izbor" : "Community Curated"}
                     </span>
                   )}
                 </div>

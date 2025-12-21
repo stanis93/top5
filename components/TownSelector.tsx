@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { TOWNS } from '../constants';
 import { Town } from '../types';
 import { MapPin } from 'lucide-react';
 
 interface TownSelectorProps {
+  towns: Town[];
   onSelectTown: (town: Town) => void;
 }
 
-export const TownSelector: React.FC<TownSelectorProps> = ({ onSelectTown }) => {
+export const TownSelector: React.FC<TownSelectorProps> = ({ towns, onSelectTown }) => {
   const [filterRegion, setFilterRegion] = useState<string>('All');
 
-  const filteredTowns = filterRegion === 'All' 
-    ? TOWNS 
-    : TOWNS.filter(t => t.region === filterRegion);
+  const filteredTowns = filterRegion === 'All'
+    ? towns
+    : towns.filter(t => t.region === filterRegion);
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 py-8">
@@ -23,11 +23,10 @@ export const TownSelector: React.FC<TownSelectorProps> = ({ onSelectTown }) => {
             <button
               key={region}
               onClick={() => setFilterRegion(region)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                filterRegion === region 
-                  ? 'bg-montenegro-red text-white' 
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${filterRegion === region
+                  ? 'bg-montenegro-red text-white'
                   : 'text-slate-600 hover:bg-slate-50'
-              }`}
+                }`}
             >
               {region}
             </button>
@@ -43,14 +42,14 @@ export const TownSelector: React.FC<TownSelectorProps> = ({ onSelectTown }) => {
             className="group relative h-64 w-full rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 text-left focus:outline-none focus:ring-4 focus:ring-montenegro-red/20"
           >
             <div className="absolute inset-0 bg-slate-900">
-              <img 
-                src={town.imageUrl} 
-                alt={town.name} 
+              <img
+                src={town.imageUrl}
+                alt={town.name}
                 className="w-full h-full object-cover opacity-80 group-hover:opacity-60 group-hover:scale-105 transition-all duration-700"
               />
             </div>
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-            
+
             <div className="absolute bottom-0 left-0 p-6 w-full">
               <span className="inline-block px-2 py-1 mb-2 text-xs font-semibold text-white bg-montenegro-red rounded-md shadow-sm">
                 {town.region}

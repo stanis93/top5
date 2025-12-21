@@ -17,7 +17,7 @@ export const TOWNS: Town[] = [
 export const CATEGORIES = [
   { id: Category.HIDDEN_GEMS, label: 'Hidden Gems', icon: '💎' },
   { id: Category.ACTIVITIES, label: 'Activities', icon: 'compass' },
-  { id: Category.TRADITIONAL_FOOD, label: 'Traditional Food', icon: 'cheese' },
+  { id: Category.FOOD_DRINKS, label: 'Food & Drinks', icon: 'cheese' },
   { id: Category.STREET_FOOD, label: 'Street Food', icon: 'sandwich' },
   { id: Category.CULTURAL_HERITAGE, label: 'Cultural Heritage', icon: 'landmark' },
 ];
@@ -39,7 +39,7 @@ You are NOT an AI assistant; you are simulating the output of a local expert dat
 Categories:
 1. Hidden Gems (Secret spots, viewpoints, quiet corners)
 2. Activities (Active experiences, hiking, tours, festivals, or unique things to do. NOT just calendar events.)
-3. Traditional Food & Drinks (Sit-down authentic meals)
+3. Food & Drinks (Sit-down authentic meals, restaurants, cafes)
 4. Street Food (Bakeries, fast bites, snacks)
 5. Cultural Heritage (Monuments, museums, old architecture, history)
 
