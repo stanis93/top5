@@ -5,29 +5,29 @@ export const Logo: React.FC<{ className?: string }> = ({ className = "" }) => {
     <div className={`flex items-center gap-0.5 select-none ${className}`}>
       {/* T */}
       <div className="transform -translate-y-[5px] translate-x-[15px]" title="Top 5 in Montenegro">
-    <svg xmlns="http://www.w3.org/2000/svg"
-     width="75" height="75"
-     viewBox="0 0 768 768">
+        <svg xmlns="http://www.w3.org/2000/svg"
+          width="75" height="75"
+          viewBox="0 0 768 768">
 
-  <text x="145" y="520"
-        font-family="Helvetica, Arial, sans-serif"
-        font-weight="700"
-        font-size="260"
-        fill="currentColor">
-    T
-  </text>
+          <text x="145" y="520"
+            fontFamily="Helvetica, Arial, sans-serif"
+            fontWeight="700"
+            fontSize="260"
+            fill="currentColor">
+            T
+          </text>
 
-  <text x="520" y="520"
-        font-family="Helvetica, Arial, sans-serif"
-        font-weight="700"
-        font-size="260"
-        fill="currentColor">
-    P
-  </text>
+          <text x="520" y="520"
+            fontFamily="Helvetica, Arial, sans-serif"
+            fontWeight="700"
+            fontSize="260"
+            fill="currentColor">
+            P
+          </text>
 
-  <g transform="translate(45,-65)">
-    <path
-      d="
+          <g transform="translate(45,-65)">
+            <path
+              d="
         M 324 316
         L 335 369
         L 279 374
@@ -47,23 +47,23 @@ export const Logo: React.FC<{ className?: string }> = ({ className = "" }) => {
         L 436 395
         L 363 320
         Z"
-      fill="#C70E2C"
-      stroke="#D3C15C"
-      strokeWidth="8"
-    />
-  </g>
+              fill="#C70E2C"
+              stroke="#D3C15C"
+              strokeWidth="8"
+            />
+          </g>
 
-  <text x="418" y="490"
-        text-anchor="middle"
-        font-family="Helvetica, Arial, sans-serif"
-        font-weight="700"
-        font-size="210"
-        fill="#D3C15C">
-    5
-  </text>
+          <text x="418" y="490"
+            textAnchor="middle"
+            fontFamily="Helvetica, Arial, sans-serif"
+            fontWeight="700"
+            fontSize="210"
+            fill="#D3C15C">
+            5
+          </text>
 
-</svg>
-</div>
+        </svg>
+      </div>
 
 
     </div>

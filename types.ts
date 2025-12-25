@@ -17,9 +17,14 @@ export enum Category {
 
 export interface ListItem {
   name: string;
+  slug?: string;
   description: string;
   reason: string;
   location?: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
   verificationStatus: 'verified' | 'needs_verification';
   imageKeyword: string;
 }
@@ -87,17 +92,31 @@ export interface SanityListItem {
   _id: string;
   _type: 'listItem';
   name: string;
+  slug: {
+    current: string;
+  };
   town: string;
   category: string;
   description: string;
   reason: string;
+  content?: Array<{
+    heading?: string;
+    body: string;
+  }>;
   images: SanityImageAsset[];
+  gallery?: SanityImageAsset[];
   location?: {
     address?: string;
     coordinates?: {
       lat: number;
       lng: number;
     };
+  };
+  features?: string[];
+  contactInfo?: {
+    website?: string;
+    instagram?: string;
+    phone?: string;
   };
   verifiedBy?: SanityAmbassador[];
   verificationDate?: string;

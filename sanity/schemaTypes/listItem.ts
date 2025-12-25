@@ -12,6 +12,17 @@ export default defineType({
             validation: (Rule) => Rule.required(),
         }),
         defineField({
+            name: 'slug',
+            title: 'Slug',
+            type: 'slug',
+            options: {
+                source: 'name',
+                maxLength: 96,
+            },
+            validation: (Rule) => Rule.required(),
+            description: 'Unique URL path for this item',
+        }),
+        defineField({
             name: 'town',
             title: 'Town',
             type: 'string',
@@ -48,23 +59,38 @@ export default defineType({
         }),
         defineField({
             name: 'description',
-            title: 'Description',
+            title: 'Brief Description',
             type: 'text',
-            rows: 4,
+            rows: 3,
             validation: (Rule) => Rule.required().max(300),
-            description: 'What makes this place special? (max 300 characters)',
+            description: 'Catchy summary shown on the card (max 300 characters)',
         }),
         defineField({
             name: 'reason',
             title: 'Why Top 5?',
             type: 'text',
-            rows: 3,
+            rows: 2,
             validation: (Rule) => Rule.required(),
             description: 'Local insight - why is this in the top 5?',
         }),
         defineField({
+            name: 'content',
+            title: 'Detailed Content',
+            type: 'array',
+            description: 'The long-form story and details about this gem',
+            of: [
+                {
+                    type: 'object',
+                    fields: [
+                        { name: 'heading', title: 'Heading', type: 'string' },
+                        { name: 'body', title: 'Body Text', type: 'text', rows: 5 },
+                    ],
+                },
+            ],
+        }),
+        defineField({
             name: 'images',
-            title: 'Images',
+            title: 'Main Card Images',
             type: 'array',
             of: [
                 {
@@ -73,7 +99,19 @@ export default defineType({
                 },
             ],
             validation: (Rule) => Rule.required().min(1).max(5),
-            description: 'Upload 1-5 images',
+            description: 'Primary images for the card and gallery header',
+        }),
+        defineField({
+            name: 'gallery',
+            title: 'Additional Gallery Photos',
+            type: 'array',
+            of: [
+                {
+                    type: 'image',
+                    options: { hotspot: true },
+                },
+            ],
+            description: 'Extra photos for the deep-dive page',
         }),
         defineField({
             name: 'location',
@@ -90,6 +128,26 @@ export default defineType({
                     title: 'GPS Coordinates',
                     type: 'geopoint',
                 },
+            ],
+        }),
+        defineField({
+            name: 'features',
+            title: 'Amenities & Features',
+            type: 'array',
+            of: [{ type: 'string' }],
+            options: {
+                layout: 'tags',
+            },
+            description: 'e.g. WiFi, Parking, Great View, Local produce',
+        }),
+        defineField({
+            name: 'contactInfo',
+            title: 'Contact Information',
+            type: 'object',
+            fields: [
+                { name: 'website', title: 'Website', type: 'url' },
+                { name: 'instagram', title: 'Instagram Handle', type: 'string', description: 'e.g. @visit_kotor' },
+                { name: 'phone', title: 'Phone Number', type: 'string' },
             ],
         }),
         defineField({

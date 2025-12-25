@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { fetchTop5List } from '../services/geminiService';
 import { fetchListItems, urlFor } from '../services/sanityClient';
-import { ListItem, Category, Town } from '../types';
-import { CheckCircle2, AlertCircle, MapPin, RefreshCw, ThumbsUp, ThumbsDown, RotateCcw } from 'lucide-react';
+import { ListItem, Category, Town, SanityListItem } from '../types';
+import { CheckCircle2, AlertCircle, MapPin, RefreshCw, ThumbsUp, ThumbsDown, RotateCcw, ArrowLeft } from 'lucide-react';
 
 interface ContentListProps {
   town: Town;
   category: Category;
   language: 'en' | 'mn';
+  hideTitle?: boolean;
 }
 
 // Helper to generate random local stats
@@ -35,9 +36,10 @@ interface ItemWithStats extends ListItem {
   dislikes: number;
   userVote: 'like' | 'dislike' | null;
   imageUrl?: string;
+  rawData?: SanityListItem; // Store original sanity data for detail view
 }
 
-export const ContentList: React.FC<ContentListProps> = ({ town, category, language }) => {
+export const ContentList: React.FC<ContentListProps> = ({ town, category, language, onSelectItem, hideTitle }) => {
   const [displayItems, setDisplayItems] = useState<ItemWithStats[]>([]);
   const [reserveItem, setReserveItem] = useState<ItemWithStats | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -73,6 +75,7 @@ export const ContentList: React.FC<ContentListProps> = ({ town, category, langua
             description: item.description,
             reason: item.reason,
             location: item.location?.address,
+            coordinates: item.location?.coordinates,
             verificationStatus: item.status === 'published' ? 'verified' : 'needs_verification',
             imageKeyword: item.name,
             imageUrl: item.images && item.images.length > 0
@@ -81,7 +84,8 @@ export const ContentList: React.FC<ContentListProps> = ({ town, category, langua
             id: idx,
             likes: getRandomVotes(),
             dislikes: Math.floor(Math.random() * 5),
-            userVote: null as 'like' | 'dislike' | null
+            userVote: null as 'like' | 'dislike' | null,
+            rawData: item
           }));
 
           if (isMounted) {
@@ -99,7 +103,7 @@ export const ContentList: React.FC<ContentListProps> = ({ town, category, langua
 
           if (isMounted && data && data.items.length > 0) {
             // Process items with simulated stats
-            const processedItems = data.items.map((item, idx) => ({
+            const processedItems: ItemWithStats[] = data.items.map((item, idx) => ({
               ...item,
               id: idx,
               likes: getRandomVotes(),
@@ -136,7 +140,8 @@ export const ContentList: React.FC<ContentListProps> = ({ town, category, langua
     };
   }, [town.id, category, language]);
 
-  const handleVote = (index: number, type: 'like' | 'dislike') => {
+  const handleVote = (e: React.MouseEvent, index: number, type: 'like' | 'dislike') => {
+    e.stopPropagation(); // Don't trigger the detail view click
     setDisplayItems(current =>
       current.map((item, i) => {
         if (i !== index) return item;
@@ -164,7 +169,8 @@ export const ContentList: React.FC<ContentListProps> = ({ town, category, langua
     );
   };
 
-  const handleSwapItem = (indexToRemove: number) => {
+  const handleSwapItem = (e: React.MouseEvent, indexToRemove: number) => {
+    e.stopPropagation();
     if (!reserveItem) return;
 
     // Replace the item at index with reserve
@@ -174,6 +180,12 @@ export const ContentList: React.FC<ContentListProps> = ({ town, category, langua
       return newList;
     });
     setReserveItem(null); // Used the reserve
+  };
+
+  const handleItemClick = (item: ItemWithStats) => {
+    if (onSelectItem && item.rawData) {
+      onSelectItem(item.rawData);
+    }
   };
 
   if (loading) {
@@ -205,108 +217,124 @@ export const ContentList: React.FC<ContentListProps> = ({ town, category, langua
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 pb-20">
-      <div className="mb-12 text-center">
-        <h2 className="text-3xl md:text-5xl font-display font-bold text-slate-900 mb-3">
-          Top 5 {category}
-        </h2>
-        <p className="text-slate-500 text-lg font-light tracking-wide">
-          {language === 'mn' ? `u gradu ${town.name}, Crna Gora` : `in ${town.name}, Montenegro`}
-        </p>
-      </div>
+    <div className={`w-full ${hideTitle ? 'mt-0' : 'mt-16'} pb-24`}>
+      {!hideTitle && (
+        <div className="mb-20 text-center space-y-4">
+          <p className="text-montenegro-red font-black uppercase tracking-[0.4em] text-[10px]">The Official Selection</p>
+          <h2 className="text-5xl md:text-7xl font-display font-bold text-slate-900 tracking-tight">
+            Top 5 {category}
+          </h2>
+          <div className="flex items-center justify-center gap-4 text-slate-400">
+            <div className="h-px w-12 bg-slate-200"></div>
+            <p className="text-sm font-bold uppercase tracking-widest italic">
+              {language === 'mn' ? `u gradu ${town.name}` : `in ${town.name}, Montenegro`}
+            </p>
+            <div className="h-px w-12 bg-slate-200"></div>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-12">
         {displayItems.map((item, index) => (
           <div
             key={item.id}
-            className="group relative bg-white rounded-2xl p-0 md:p-0 shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100 overflow-hidden"
+            onClick={() => handleItemClick(item)}
+            className={`group flex flex-col md:flex-row gap-0 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 ${item.rawData ? 'cursor-pointer' : ''}`}
           >
-            <div className="flex flex-col md:flex-row">
-              {/* Rank Marker */}
-              <div className="absolute left-0 top-0 bg-slate-900 text-white w-12 h-12 flex items-center justify-center font-display font-bold text-xl rounded-br-2xl z-20">
+            {/* Image Side - Fixed absolute width to 'keep as is' while card grows */}
+            <div className="w-full md:w-[480px] lg:w-[580px] aspect-[16/9] md:aspect-[16/7] relative overflow-hidden flex-shrink-0 bg-slate-100 border-r border-slate-100">
+              <div className="absolute top-4 left-4 z-20 w-10 h-10 bg-montenegro-red text-white flex items-center justify-center font-display font-black text-xl rounded-sm shadow-xl">
                 {index + 1}
               </div>
+              <img
+                src={item.imageUrl || `https://picsum.photos/1200/800?random=${index + town.id.length + (item.userVote ? 100 : 0)}`}
+                alt={item.name}
+                className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
 
-              {/* Image Side */}
-              <div className="w-full md:w-2/5 h-64 md:h-auto relative overflow-hidden">
-                <img
-                  src={item.imageUrl || `https://picsum.photos/600/800?random=${index + town.id.length + (item.userVote ? 100 : 0)}`}
-                  alt={item.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent md:hidden"></div>
+              {item.rawData && (
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30 backdrop-blur-sm">
+                  <span className="bg-white text-slate-900 px-7 py-2.5 rounded-sm font-black uppercase tracking-widest text-[9px] shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                    {language === 'mn' ? 'Vidi Priču' : 'Read Full Story'}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Content Side - flex-1 absorbs all the new width difference */}
+            <div className="flex-1 flex flex-col p-8 lg:p-10">
+              <div className="mb-4">
+                <h3 className="text-3xl lg:text-4xl font-display font-bold text-slate-900 leading-tight mb-4 group-hover:text-montenegro-red transition-colors">
+                  {item.name}
+                </h3>
+
+                <div className="flex flex-wrap items-center gap-6">
+                  {item.verificationStatus === 'verified' ? (
+                    <div className="flex items-center gap-1.5 text-teal-600">
+                      <CheckCircle2 size={13} strokeWidth={3} />
+                      <span className="text-[10px] font-black uppercase tracking-widest">{language === 'mn' ? "Provjereno" : "Verified"}</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 text-amber-600">
+                      <AlertCircle size={13} strokeWidth={3} />
+                      <span className="text-[10px] font-black uppercase tracking-widest">{language === 'mn' ? "U provjeri" : "Review"}</span>
+                    </div>
+                  )}
+
+                  {item.location && (
+                    <a
+                      href={item.coordinates
+                        ? `https://www.google.com/maps/search/?api=1&query=${item.coordinates.lat},${item.coordinates.lng}`
+                        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.location + ', ' + town.name + ', Montenegro')}`
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-slate-400 hover:text-montenegro-red transition-colors inline-flex items-center gap-1.5"
+                    >
+                      <MapPin size={11} strokeWidth={3} />
+                      <span className="text-[10px] font-black uppercase tracking-widest border-b border-transparent hover:border-montenegro-red line-clamp-1">{item.location}</span>
+                    </a>
+                  )}
+                </div>
               </div>
 
-              {/* Content Side */}
-              <div className="flex-1 p-6 md:p-8 flex flex-col justify-center relative">
+              <p className="text-base text-slate-600 mb-6 leading-relaxed font-medium line-clamp-3">
+                {item.description}
+              </p>
 
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-3xl font-display font-bold text-slate-900 leading-tight">
-                    {item.name}
-                  </h3>
-                </div>
-
-                <div className="flex items-center gap-3 mb-4">
-                  {item.verificationStatus === 'verified' ? (
-                    <span title="Verified by Locals" className="text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-teal-100 flex items-center gap-1">
-                      <CheckCircle2 size={10} /> {language === 'mn' ? "Potvrđeno" : "Verified Local Pick"}
-                    </span>
-                  ) : (
-                    <span title="Needs Local Verification" className="text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-amber-100 flex items-center gap-1">
-                      <AlertCircle size={10} /> {language === 'mn' ? "Čeka potvrdu" : "Pending Verification"}
-                    </span>
-                  )}
-                  {item.location && (
-                    <span className="text-slate-400 text-xs font-medium flex items-center gap-1">
-                      <MapPin size={10} /> {item.location}
-                    </span>
-                  )}
-                </div>
-
-                <p className="text-slate-600 mb-6 leading-relaxed text-base">
-                  {item.description}
+              <div className="relative pl-6 border-l-2 border-slate-900 mb-6 py-1">
+                <p className="text-sm lg:text-base font-bold text-slate-900 italic leading-relaxed">
+                  "{item.reason}"
                 </p>
+              </div>
 
-                <div className="bg-slate-50 p-4 rounded-xl border-l-4 border-montenegro-red mb-6">
-                  <p className="text-sm text-slate-800 italic">
-                    "{item.reason}"
-                  </p>
+              {/* Interaction Bar */}
+              <div className="mt-auto flex items-center justify-between pt-4 border-t border-slate-50">
+                <div className="flex items-center gap-8">
+                  <button
+                    onClick={(e) => handleVote(e, index, 'like')}
+                    className={`flex items-center gap-2 transition-all ${item.userVote === 'like' ? 'text-slate-900 scale-110' : 'text-slate-300 hover:text-slate-900'}`}
+                  >
+                    <ThumbsUp size={18} fill={item.userVote === 'like' ? 'currentColor' : 'none'} />
+                    <span className="text-sm font-bold">{item.likes}</span>
+                  </button>
+
+                  <button
+                    onClick={(e) => handleVote(e, index, 'dislike')}
+                    className={`flex items-center gap-2 transition-all ${item.userVote === 'dislike' ? 'text-montenegro-red scale-110' : 'text-slate-300 hover:text-montenegro-red'}`}
+                  >
+                    <ThumbsDown size={18} fill={item.userVote === 'dislike' ? 'currentColor' : 'none'} />
+                  </button>
                 </div>
 
-                {/* Interaction Bar */}
-                <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
-                  <div className="flex items-center space-x-6">
-                    <button
-                      onClick={() => handleVote(index, 'like')}
-                      className={`flex items-center space-x-2 text-sm font-bold transition-colors ${item.userVote === 'like' ? 'text-green-600' : 'text-slate-400 hover:text-green-600'}`}
-                    >
-                      <ThumbsUp size={18} className={item.userVote === 'like' ? 'fill-current' : ''} />
-                      <span>{item.likes}</span>
-                    </button>
-
-                    <button
-                      onClick={() => handleVote(index, 'dislike')}
-                      className={`flex items-center space-x-2 text-sm font-bold transition-colors ${item.userVote === 'dislike' ? 'text-red-500' : 'text-slate-400 hover:text-red-500'}`}
-                    >
-                      <ThumbsDown size={18} className={item.userVote === 'dislike' ? 'fill-current' : ''} />
-                    </button>
-                  </div>
-
-                  {item.userVote === 'dislike' && reserveItem ? (
-                    <button
-                      onClick={() => handleSwapItem(index)}
-                      className="flex items-center space-x-2 text-xs text-white bg-montenegro-red hover:bg-red-700 px-3 py-1.5 rounded-lg font-medium animate-in slide-in-from-right-2 transition-colors shadow-sm"
-                    >
-                      <RotateCcw size={12} />
-                      <span>{language === 'mn' ? "Zamijeni" : "Incorrect? Swap it"}</span>
-                    </button>
-                  ) : (
-                    <span className="text-[10px] text-slate-300 font-medium uppercase tracking-widest">
-                      {language === 'mn' ? "Lokalni izbor" : "Community Curated"}
-                    </span>
-                  )}
+                <div className="flex items-center gap-4">
+                  <div className="w-8 h-[1px] bg-slate-100"></div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">
+                    {item.rawData ? (language === 'mn' ? "Priča" : "Story") : "Official Selection"}
+                  </span>
                 </div>
-
               </div>
             </div>
           </div>

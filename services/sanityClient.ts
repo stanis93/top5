@@ -1,6 +1,6 @@
 import { createClient } from '@sanity/client';
 import imageUrlBuilder from '@sanity/image-url';
-import { SanityBlogPost, SanityListItem, SanityImageAsset, SanityTown } from '../types';
+import { SanityBlogPost, SanityListItem, SanityImageAsset, SanityTown, SanityAmbassador } from '../types';
 
 // Initialize Sanity client
 export const sanityClient = createClient({
@@ -72,12 +72,17 @@ export async function fetchListItems(
     _id,
     _type,
     name,
+    slug,
     town,
     category,
     description,
     reason,
+    content,
     images,
+    gallery,
     location,
+    features,
+    contactInfo,
     verifiedBy[]->{
       _id,
       _type,
@@ -145,6 +150,32 @@ export async function fetchBlogPostBySlug(
     } catch (error) {
         console.error('Error fetching blog post by slug from Sanity:', error);
         return null;
+    }
+}
+
+/**
+ * Fetch ambassadors for a specific town
+ */
+export async function fetchAmbassadorsByTown(townId: string): Promise<SanityAmbassador[]> {
+    const query = `*[_type == "ambassador" && (town == $townId || lower(town) == lower($townId))] {
+    _id,
+    _type,
+    name,
+    title,
+    email,
+    town,
+    avatar,
+    bio
+  }`;
+
+    try {
+        const ambassadors = await sanityClient.fetch<SanityAmbassador[]>(query, {
+            townId,
+        });
+        return ambassadors;
+    } catch (error) {
+        console.error('Error fetching ambassadors from Sanity:', error);
+        return [];
     }
 }
 
