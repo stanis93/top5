@@ -136,3 +136,25 @@ export interface SanityTown {
   image: SanityImageAsset;
   order: number;
 }
+
+export interface SanityCityOfTheMonth {
+  _id: string;
+  _type: 'cityOfTheMonth';
+  title: string;
+  town: SanityTown;
+  month: string;
+  description: string;
+  featuredImage?: SanityImageAsset;
+  active: boolean;
+}
+
+export interface SanitySiteSettings {
+  _id: string;
+  _type: 'siteSettings';
+  heroTitle: string;
+  heroSubtitle: string;
+  heroImage: SanityImageAsset;
+  ctaPrimaryText?: string;
+  ctaSecondaryText?: string;
+  footerText?: string;
+}

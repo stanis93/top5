@@ -1,6 +1,8 @@
 
 import { Town, Category, MonthlyFeature } from './types';
 
+export const GENERAL_HERO_IMAGE = 'https://images.unsplash.com/photo-1555940280-66bf87aa823d?auto=format&fit=crop&w=1920&q=80'; // Durmitor National Park
+
 export const TOWNS: Town[] = [
   { id: 'kotor', name: 'Kotor', region: 'Coastal', tagline: 'Where history meets the fjord', imageUrl: 'https://picsum.photos/800/600?random=1' },
   { id: 'budva', name: 'Budva', region: 'Coastal', tagline: 'The metropolis of tourism', imageUrl: 'https://picsum.photos/800/600?random=2' },

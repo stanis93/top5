@@ -3,12 +3,28 @@ import { TownSelector } from './components/TownSelector';
 import { CategoryNav } from './components/CategoryNav';
 import { ContentList } from './components/ContentList';
 import { Logo } from './components/Logo';
-import { fetchBlogPosts, urlFor, fetchTowns, fetchAmbassadorsByTown } from './services/sanityClient';
+import {
+  fetchBlogPosts,
+  urlFor,
+  fetchTowns,
+  fetchAmbassadorsByTown,
+  fetchSiteSettings,
+  fetchCityOfTheMonth
+} from './services/sanityClient';
 import './services/testSanity'; // Test Sanity data
 import { sendAmbassadorApplication, sendReportIssue, AmbassadorFormData, ReportFormData } from './services/emailService';
 import { DetailView } from './components/DetailView';
-import { Town, Category, SanityBlogPost, SanityListItem, SanityAmbassador } from './types';
-import { CITY_OF_THE_MONTH, TOWNS } from './constants';
+import { ReportView } from './components/ReportView';
+import {
+  Town,
+  Category,
+  SanityBlogPost,
+  SanityListItem,
+  SanityAmbassador,
+  SanitySiteSettings,
+  SanityCityOfTheMonth
+} from './types';
+import { CITY_OF_THE_MONTH, TOWNS, GENERAL_HERO_IMAGE } from './constants';
 import {
   ArrowLeft,
   Star,
@@ -32,11 +48,14 @@ const App: React.FC = () => {
   const [language, setLanguage] = useState<'en' | 'mn'>('en');
   const [selectedPost, setSelectedPost] = useState<SanityBlogPost | null>(null);
   const [selectedItem, setSelectedItem] = useState<SanityListItem | null>(null);
+  const [showReport, setShowReport] = useState<boolean>(false);
   const [blogPosts, setBlogPosts] = useState<SanityBlogPost[]>([]);
   const [blogLoading, setBlogLoading] = useState<boolean>(true);
   const [towns, setTowns] = useState<Town[]>(TOWNS);
   const [ambassadors, setAmbassadors] = useState<SanityAmbassador[]>([]);
   const [ambassadorsLoading, setAmbassadorsLoading] = useState<boolean>(false);
+  const [siteSettings, setSiteSettings] = useState<SanitySiteSettings | null>(null);
+  const [sanityCityOfMonth, setSanityCityOfMonth] = useState<SanityCityOfTheMonth | null>(null);
 
   // Form states
   const [reportForm, setReportForm] = useState<ReportFormData>({
@@ -101,6 +120,23 @@ const App: React.FC = () => {
     getTowns();
   }, []);
 
+  // Fetch Site Settings and City of the Month from Sanity
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const [settings, cityFeature] = await Promise.all([
+          fetchSiteSettings(),
+          fetchCityOfTheMonth()
+        ]);
+        setSiteSettings(settings);
+        setSanityCityOfMonth(cityFeature);
+      } catch (error) {
+        console.error('Error loading settings/city feature:', error);
+      }
+    };
+    loadSettings();
+  }, []);
+
   // Fetch ambassadors when town selection changes
   useEffect(() => {
     if (!selectedTown) {
@@ -128,9 +164,10 @@ const App: React.FC = () => {
     window.scrollTo(0, 0);
   };
 
-  const handleBackToBlog = () => {
+  const handleBackToHome = () => {
     setSelectedPost(null);
     setSelectedItem(null);
+    setShowReport(false);
     window.scrollTo(0, 0);
   };
 
@@ -168,7 +205,14 @@ const App: React.FC = () => {
     [...blogPosts].sort((a, b) => new Date(b.publishedAt || '').getTime() - new Date(a.publishedAt || '').getTime())
     , [blogPosts]);
 
-  const cityOfMonth = towns.find(t => t.id === CITY_OF_THE_MONTH.townId) || towns[0];
+  // Priority: 1. Sanity Feature, 2. Static Feature Fallback, 3. First Town
+  const activeCityOfMonth = useMemo(() => {
+    if (sanityCityOfMonth?.town) {
+      const townFromSanity = towns.find(t => t.id === sanityCityOfMonth.town.slug.current);
+      if (townFromSanity) return townFromSanity;
+    }
+    return towns.find(t => t.id === CITY_OF_THE_MONTH.townId) || towns[0];
+  }, [sanityCityOfMonth, towns]);
 
   return (
     <div className="min-h-screen flex flex-col font-sans text-slate-900 bg-slate-100">
@@ -211,10 +255,19 @@ const App: React.FC = () => {
       </nav>
 
       <main className="flex-grow">
-        {selectedPost || selectedItem ? (
+        {showReport ? (
+          <ReportView
+            onBack={handleBackToHome}
+            reportForm={reportForm}
+            setReportForm={setReportForm}
+            reportStatus={reportStatus}
+            isSubmittingReport={isSubmittingReport}
+            onSubmit={handleReportSubmit}
+          />
+        ) : selectedPost || selectedItem ? (
           <DetailView
             language={language}
-            onBack={handleBackToBlog}
+            onBack={handleBackToHome}
             data={selectedPost ? {
               title: selectedPost.title,
               category: selectedPost.category,
@@ -381,10 +434,10 @@ const App: React.FC = () => {
           </div>
         ) : (
           <div className="animate-in fade-in duration-500">
-            {/* Hero Section */}
+            {/* Hero Section - Brand Focused */}
             <section className="relative h-[85vh] min-h-[600px] flex items-center overflow-hidden bg-slate-900">
               <img
-                src={cityOfMonth.imageUrl}
+                src={siteSettings?.heroImage ? urlFor(siteSettings.heroImage).url() : GENERAL_HERO_IMAGE}
                 className="absolute inset-0 w-full h-full object-cover opacity-60 scale-105"
                 alt="Montenegro Landscape"
               />
@@ -392,26 +445,28 @@ const App: React.FC = () => {
 
               <div className="relative max-w-7xl mx-auto px-4 w-full">
                 <div className="max-w-2xl space-y-6 animate-in slide-in-from-left duration-1000">
-                  <div className="inline-flex items-center gap-2 bg-montenegro-red/20 backdrop-blur-md border border-montenegro-red/30 px-4 py-2 rounded-full">
-                    <Star size={14} className="text-montenegro-gold fill-montenegro-gold" />
-                    <span className="text-white text-xs font-bold uppercase tracking-[0.2em]">{cityOfMonth.name} is Month's Featured City</span>
-                  </div>
                   <h1 className="text-6xl md:text-8xl font-display font-bold text-white leading-[0.9]">
-                    The real <br />
-                    <span className="text-montenegro-gold">Montenegro.</span>
+                    {siteSettings?.heroTitle ? (
+                      <>
+                        {siteSettings.heroTitle.split(' ').slice(0, -1).join(' ')} <br />
+                        <span className="text-montenegro-gold">{siteSettings.heroTitle.split(' ').slice(-1)}</span>
+                      </>
+                    ) : (
+                      <>
+                        The real <br />
+                        <span className="text-montenegro-gold">Montenegro.</span>
+                      </>
+                    )}
                   </h1>
                   <p className="text-xl text-slate-200 font-light leading-relaxed max-w-lg">
-                    Hand-picked Top 5 lists by local residents. No tourist traps, no bought reviews. Just the spots we actually visit.
+                    {siteSettings?.heroSubtitle || 'Hand-picked Top 5 lists by local residents. No tourist traps, no bought reviews. Just the spots we actually visit.'}
                   </p>
                   <div className="pt-8 flex flex-wrap gap-4">
-                    <button
-                      onClick={() => setSelectedTown(cityOfMonth)}
-                      className="px-8 py-4 bg-montenegro-red text-white rounded-full font-bold hover:bg-red-700 transition-all shadow-xl shadow-red-900/20 group"
-                    >
-                      Explore {cityOfMonth.name} <ArrowLeft size={18} className="inline ml-2 rotate-180 group-hover:translate-x-1 transition-transform" />
-                    </button>
-                    <a href="#map" className="px-8 py-4 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full font-bold hover:bg-white/20 transition-all">
-                      Browse all cities
+                    <a href="#map" className="px-10 py-4 bg-montenegro-red text-white font-bold hover:bg-red-700 transition-all shadow-xl shadow-red-900/20 group uppercase tracking-widest text-xs">
+                      {siteSettings?.ctaPrimaryText || 'Explore Cities'} <ArrowLeft size={16} className="inline ml-2 rotate-180 group-hover:translate-x-1 transition-transform" />
+                    </a>
+                    <a href="#blog" className="px-10 py-4 bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold hover:bg-white/20 transition-all uppercase tracking-widest text-xs">
+                      {siteSettings?.ctaSecondaryText || 'Read Stories'}
                     </a>
                   </div>
                 </div>
@@ -419,22 +474,28 @@ const App: React.FC = () => {
 
               {/* Float Info Card */}
               <div className="absolute bottom-12 right-12 hidden lg:block animate-in fade-in slide-in-from-right duration-1000 delay-500">
-                <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-6 rounded-xl w-72 shadow-2xl">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-montenegro-gold/20 flex items-center justify-center">
-                      <Users size={20} className="text-montenegro-gold" />
+                <div className="bg-white/5 backdrop-blur-2xl border border-white/10 p-8 rounded-none w-80 shadow-2xl relative">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-montenegro-gold"></div>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-none bg-white/10 flex items-center justify-center border border-white/10">
+                      <Users size={22} className="text-montenegro-gold" />
                     </div>
                     <div>
-                      <p className="text-white font-bold">12 Town Ambassadors</p>
-                      <p className="text-white/60 text-xs">Field-verified daily</p>
+                      <p className="text-white font-bold uppercase tracking-tighter text-lg">Ambassadors</p>
+                      <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.2em]">Field-verified daily</p>
                     </div>
                   </div>
-                  <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                    <div className="h-full w-3/4 bg-montenegro-gold rounded-full shadow-[0_0_10px_rgba(255,215,0,0.5)]"></div>
+                  <div className="flex items-center justify-between text-[10px] font-bold text-white/60 uppercase tracking-widest mb-2">
+                    <span>Authenticity</span>
+                    <span>100%</span>
+                  </div>
+                  <div className="h-[2px] w-full bg-white/5 overflow-hidden">
+                    <div className="h-full w-full bg-gradient-to-r from-montenegro-gold/50 to-montenegro-gold shadow-[0_0_15px_rgba(255,215,0,0.3)]"></div>
                   </div>
                 </div>
               </div>
             </section>
+
 
             {/* City Selector Section */}
             <section id="map" className="py-24 max-w-7xl mx-auto px-4">
@@ -444,6 +505,56 @@ const App: React.FC = () => {
               </div>
 
               <TownSelector towns={towns} onSelectTown={setSelectedTown} />
+            </section>
+
+            {/* City of the Month - Dedicated Section (Moved below Map) */}
+            <section className="py-16 md:py-20 bg-blue-50/20 border-y border-blue-100/30 relative overflow-hidden">
+              {/* Subtle mesh/atmosphere glows */}
+              <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-montenegro-red/[0.02] rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+              <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-montenegro-gold/[0.03] rounded-full blur-[80px] translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
+              <div className="absolute top-1/2 left-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.03),transparent)] -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+
+              <div className="max-w-7xl mx-auto px-4 relative z-10">
+                <div className="bg-white rounded-none overflow-hidden shadow-[0_40px_100px_-20px_rgba(0,0,0,0.08)] flex flex-col lg:flex-row border border-slate-200/60">
+                  <div className="lg:w-1/2 relative h-[400px] lg:h-auto overflow-hidden">
+                    <img
+                      src={sanityCityOfMonth?.featuredImage ? urlFor(sanityCityOfMonth.featuredImage).url() : activeCityOfMonth.imageUrl}
+                      alt={activeCityOfMonth.name}
+                      className="absolute inset-0 w-full h-full object-cover grayscale-[0.2] hover:grayscale-0 transition-all duration-1000 scale-105 hover:scale-100"
+                    />
+                    <div className="absolute inset-0 bg-slate-900/10"></div>
+                  </div>
+                  <div className="lg:w-1/2 p-10 md:p-14 flex flex-col justify-center space-y-6 bg-white relative">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50/20 -mr-16 -mt-16 rotate-45 border border-blue-100/30 hidden lg:block"></div>
+                    <div className="space-y-6 relative">
+                      <div className="inline-flex items-center gap-3 bg-slate-900 text-white px-5 py-2.5 rounded-none">
+                        <Calendar size={14} className="text-montenegro-gold" />
+                        <span className="text-[10px] font-bold uppercase tracking-[0.3em]">
+                          {sanityCityOfMonth?.month || new Date().toLocaleString(language === 'mn' ? 'sr-ME' : 'default', { month: 'long' })}
+                          {language === 'mn' ? (sanityCityOfMonth ? ': ' + (sanityCityOfMonth.title || 'Grad Mjeseca') : ': Grad Mjeseca') : (sanityCityOfMonth ? ' ' + (sanityCityOfMonth.title || 'City of the Month') : ' City of the Month')}
+                        </span>
+                      </div>
+                      <h2 className="text-5xl md:text-7xl font-display font-bold text-slate-900 leading-[1.1] tracking-tighter">
+                        Discover <br />
+                        <span className="text-montenegro-red">{activeCityOfMonth.name}</span>
+                      </h2>
+                      <div className="w-20 h-1 bg-montenegro-gold my-8"></div>
+                      <p className="text-slate-500 text-lg leading-relaxed font-light italic">
+                        "{sanityCityOfMonth?.description || CITY_OF_THE_MONTH.description}"
+                      </p>
+                    </div>
+                    <div className="pt-4">
+                      <button
+                        onClick={() => setSelectedTown(activeCityOfMonth)}
+                        className="px-12 py-5 bg-slate-900 text-white rounded-none font-bold hover:bg-slate-800 transition-all flex items-center gap-4 group uppercase tracking-widest text-xs border border-slate-900 shadow-xl hover:shadow-2xl"
+                      >
+                        Explore Selection
+                        <ArrowLeft size={16} className="rotate-180 group-hover:translate-x-1 transition-transform" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </section>
 
             {/* Ambassador Call to Action */}
@@ -470,16 +581,17 @@ const App: React.FC = () => {
                     </div>
                   </div>
 
-                  <form onSubmit={handleAmbassadorSubmit} className="space-y-4 bg-white rounded-xl p-8 text-slate-900 shadow-2xl">
-                    <h3 className="text-2xl font-display font-bold mb-6">Ambassador Application</h3>
-                    <div className="grid md:grid-cols-2 gap-4">
+                  <form onSubmit={handleAmbassadorSubmit} className="space-y-4 bg-white rounded-none p-10 text-slate-900 shadow-2xl relative">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-montenegro-red to-montenegro-gold"></div>
+                    <h3 className="text-2xl font-display font-bold mb-8 uppercase tracking-tighter">Ambassador Application</h3>
+                    <div className="grid md:grid-cols-2 gap-6">
                       <input
                         type="text"
                         placeholder="Full Name"
                         required
                         value={ambassadorForm.name}
                         onChange={(e) => setAmbassadorForm({ ...ambassadorForm, name: e.target.value })}
-                        className="p-4 bg-slate-50 rounded-xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-montenegro-red outline-none transition-all"
+                        className="p-4 bg-slate-50 rounded-none border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-slate-900 outline-none transition-all placeholder:uppercase placeholder:text-[10px] placeholder:tracking-widest"
                       />
                       <input
                         type="email"
@@ -487,7 +599,7 @@ const App: React.FC = () => {
                         required
                         value={ambassadorForm.email}
                         onChange={(e) => setAmbassadorForm({ ...ambassadorForm, email: e.target.value })}
-                        className="p-4 bg-slate-50 rounded-xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-montenegro-red outline-none transition-all"
+                        className="p-4 bg-slate-50 rounded-none border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-slate-900 outline-none transition-all placeholder:uppercase placeholder:text-[10px] placeholder:tracking-widest"
                       />
                       <input
                         type="text"
@@ -495,13 +607,13 @@ const App: React.FC = () => {
                         required
                         value={ambassadorForm.town}
                         onChange={(e) => setAmbassadorForm({ ...ambassadorForm, town: e.target.value })}
-                        className="p-4 bg-slate-50 rounded-xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-montenegro-red outline-none transition-all"
+                        className="p-4 bg-slate-50 rounded-none border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-slate-900 outline-none transition-all placeholder:uppercase placeholder:text-[10px] placeholder:tracking-widest"
                       />
                       <select
                         required
                         value={ambassadorForm.availability}
                         onChange={(e) => setAmbassadorForm({ ...ambassadorForm, availability: e.target.value })}
-                        className="p-4 bg-slate-50 rounded-xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-montenegro-red outline-none transition-all"
+                        className="p-4 bg-slate-50 rounded-none border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-slate-900 outline-none transition-all text-xs uppercase tracking-widest font-bold"
                       >
                         <option>1-2 hrs / week</option>
                         <option>3-5 hrs / week</option>
@@ -513,17 +625,17 @@ const App: React.FC = () => {
                       rows={4}
                       value={ambassadorForm.motivation}
                       onChange={(e) => setAmbassadorForm({ ...ambassadorForm, motivation: e.target.value })}
-                      className="w-full p-4 bg-slate-50 rounded-xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-montenegro-red outline-none transition-all"
+                      className="w-full p-4 bg-slate-50 rounded-none border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-slate-900 outline-none transition-all placeholder:uppercase placeholder:text-[10px] placeholder:tracking-widest"
                     ></textarea>
 
                     {ambassadorStatus === 'success' ? (
-                      <div className="p-4 bg-green-50 text-green-700 rounded-xl flex items-center gap-3">
+                      <div className="p-4 bg-green-50 text-green-700 rounded-none border border-green-100 flex items-center gap-3">
                         <Sparkles size={18} /> Application sent! We will be in touch.
                       </div>
                     ) : (
                       <button
                         disabled={isSubmittingAmbassador}
-                        className={`w-full py-5 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition shadow-xl ${isSubmittingAmbassador ? 'opacity-50' : ''}`}
+                        className={`w-full py-5 bg-slate-900 text-white rounded-none font-bold hover:bg-slate-800 transition shadow-xl uppercase tracking-[0.3em] text-[10px] ${isSubmittingAmbassador ? 'opacity-50' : ''}`}
                       >
                         {isSubmittingAmbassador ? 'Sending...' : 'Submit Application'}
                       </button>
@@ -542,137 +654,6 @@ const App: React.FC = () => {
               </div>
             </section>
 
-            {/* Blog Section */}
-            <section id="blog" className="py-24 bg-slate-900 text-white border-t border-slate-800">
-              <div className="max-w-7xl mx-auto px-4">
-                <div className="flex items-center justify-between flex-col md:flex-row md:items-end gap-6 mb-12">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-montenegro-gold mb-2">Ambassador Blog</p>
-                    <h2 className="text-4xl md:text-5xl font-display font-bold leading-tight">Stories from the frontlines</h2>
-                    <p className="text-slate-400 mt-3 max-w-xl text-lg">Field notes, photo drops, and why certain spots make the cut. Updated by the locals who walk these streets.</p>
-                  </div>
-                  <button onClick={() => window.location.href = '#ambassadors'} className="inline-flex items-center gap-2 text-sm font-bold text-montenegro-gold hover:text-white transition-colors">
-                    Become a contributor <ArrowLeft className="rotate-180" size={18} />
-                  </button>
-                </div>
-
-                {blogLoading ? (
-                  <div className="flex items-center justify-center py-20">
-                    <div className="animate-spin text-montenegro-gold"><RotateCcw size={40} /></div>
-                  </div>
-                ) : (
-                  <div className="grid md:grid-cols-3 gap-8">
-                    {sortedBlogPosts.map((post) => (
-                      <article
-                        key={post.title}
-                        onClick={() => setSelectedPost(post)}
-                        className="group cursor-pointer flex flex-col h-full bg-slate-800 rounded-xl overflow-hidden transition-all duration-500 hover:bg-slate-750 hover:-translate-y-1 hover:shadow-2xl"
-                      >
-                        <div className="relative h-64 overflow-hidden">
-                          <img
-                            src={urlFor(post.hero).width(600).url()}
-                            alt={post.title}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent"></div>
-                          <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-montenegro-gold bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
-                              {post.category}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="p-8 flex flex-col flex-grow">
-                          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">
-                            <Calendar size={12} className="text-montenegro-red" />
-                            {new Date(post.publishedAt || '').toLocaleDateString(language === 'mn' ? 'sr-ME' : 'en-US', { month: 'short', day: 'numeric' })}
-                          </div>
-
-                          <h3 className="text-2xl font-display font-bold text-white mb-4 leading-tight group-hover:text-montenegro-gold transition-colors">
-                            {post.title}
-                          </h3>
-
-                          <p className="text-slate-400 text-sm leading-relaxed mb-6 line-clamp-3">
-                            {post.excerpt}
-                          </p>
-
-                          <div className="mt-auto flex items-center justify-between pt-6 border-t border-slate-700/50">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-[10px] font-bold ring-2 ring-slate-800 overflow-hidden">
-                                {post.author.avatar ? (
-                                  <img src={urlFor(post.author.avatar).width(50).url()} alt={post.author.name} className="w-full h-full object-cover" />
-                                ) : post.author.name[0]}
-                              </div>
-                              <span className="text-xs font-semibold text-slate-200">{post.author.name}</span>
-                            </div>
-                            <div className="text-montenegro-gold group-hover:translate-x-1 transition-transform">
-                              <ArrowLeft className="rotate-180" size={18} />
-                            </div>
-                          </div>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </section>
-
-            {/* Report an Issue Footer Section */}
-            <section className="py-24 bg-white border-t border-slate-100">
-              <div className="max-w-4xl mx-auto px-4 text-center space-y-8">
-                <div className="w-16 h-16 bg-red-50 text-montenegro-red rounded-full flex items-center justify-center mx-auto mb-8">
-                  <AlertTriangle size={32} />
-                </div>
-                <h2 className="text-3xl md:text-5xl font-display font-bold text-slate-900">Spotted an issue?</h2>
-                <p className="text-slate-500 text-lg">Is a place closed? Did the name change? We rely on you to keep our Top 5 lists perfect. Let us know and we'll verify it.</p>
-
-                <form onSubmit={handleReportSubmit} className="max-w-xl mx-auto pt-8 flex flex-col gap-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <input
-                      type="text"
-                      placeholder="Your Name"
-                      value={reportForm.name}
-                      onChange={(e) => setReportForm({ ...reportForm, name: e.target.value })}
-                      className="p-4 bg-slate-50 rounded-lg border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-montenegro-red outline-none transition-all"
-                    />
-                    <input
-                      type="email"
-                      placeholder="Email"
-                      value={reportForm.email}
-                      onChange={(e) => setReportForm({ ...reportForm, email: e.target.value })}
-                      className="p-4 bg-slate-50 rounded-lg border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-montenegro-red outline-none transition-all"
-                    />
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Location Name"
-                    value={reportForm.location}
-                    onChange={(e) => setReportForm({ ...reportForm, location: e.target.value })}
-                    className="p-4 bg-slate-50 rounded-lg border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-montenegro-red outline-none transition-all"
-                  />
-                  <textarea
-                    placeholder="What's the issue?"
-                    rows={3}
-                    value={reportForm.issue}
-                    onChange={(e) => setReportForm({ ...reportForm, issue: e.target.value })}
-                    className="p-4 bg-slate-50 rounded-lg border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-montenegro-red outline-none transition-all"
-                  ></textarea>
-
-                  {reportStatus === 'success' ? (
-                    <div className="p-4 bg-green-50 text-green-700 rounded-lg flex items-center gap-3 justify-center">
-                      <Sparkles size={18} /> Thank you! Our team will verify this soon.
-                    </div>
-                  ) : (
-                    <button
-                      disabled={isSubmittingReport}
-                      className={`py-5 bg-slate-900 text-white rounded-lg font-bold hover:bg-slate-800 transition shadow-xl ${isSubmittingReport ? 'opacity-50' : ''}`}
-                    >
-                      {isSubmittingReport ? 'Sending...' : 'Report Issue'}
-                    </button>
-                  )}
-                </form>
-              </div>
-            </section>
           </div>
         )}
       </main>
@@ -699,7 +680,7 @@ const App: React.FC = () => {
             <h4 className="text-white font-bold mb-6 tracking-wide text-sm uppercase">Community</h4>
             <ul className="space-y-3 text-sm">
               <li><a href="#ambassadors" className="hover:text-white transition-colors">Apply as Ambassador</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Submit a Location</a></li>
+              <li><button onClick={() => setShowReport(true)} className="hover:text-white transition-colors">Report an Issue</button></li>
               <li><a href="#" className="hover:text-white transition-colors">Vote & Verify</a></li>
             </ul>
           </div>
@@ -717,7 +698,7 @@ const App: React.FC = () => {
           <span className="flex items-center gap-1"><MapPin size={12} /> Made in Montenegro</span>
         </div>
       </footer>
-    </div>
+    </div >
   );
 };
 

@@ -85,14 +85,14 @@ export const DetailView: React.FC<DetailViewProps> = ({ data, onBack, language }
                 <div className="absolute top-0 inset-x-0 p-6 flex justify-between items-center z-20">
                     <button
                         onClick={onBack}
-                        className="group flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 text-white px-5 py-2.5 rounded-md hover:bg-white hover:text-slate-900 transition-all duration-300 font-bold"
+                        className="group flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 text-white px-6 py-3 rounded-none hover:bg-white hover:text-slate-900 transition-all duration-300 font-bold uppercase tracking-widest text-[10px]"
                     >
-                        <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+                        <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
                         {language === 'mn' ? 'Nazad' : 'Back'}
                     </button>
 
-                    <button className="bg-white/10 backdrop-blur-md border border-white/20 text-white p-2.5 rounded-md hover:bg-white hover:text-slate-900 transition-all duration-300">
-                        <Share2 size={20} />
+                    <button className="bg-white/10 backdrop-blur-md border border-white/20 text-white p-3 rounded-none hover:bg-white hover:text-slate-900 transition-all duration-300">
+                        <Share2 size={18} />
                     </button>
                 </div>
 
@@ -105,7 +105,7 @@ export const DetailView: React.FC<DetailViewProps> = ({ data, onBack, language }
                                     {data.rank}
                                 </span>
                             )}
-                            <div className="px-3 py-1 bg-white/20 backdrop-blur-md border border-white/30 rounded-sm text-[10px] font-black uppercase tracking-[0.2em]">
+                            <div className="px-5 py-2 bg-white/20 backdrop-blur-md border border-white/30 rounded-none text-[10px] font-black uppercase tracking-[0.3em]">
                                 {data.category}
                             </div>
                             {data.readingTime && (
@@ -130,9 +130,9 @@ export const DetailView: React.FC<DetailViewProps> = ({ data, onBack, language }
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 pb-12 border-b-2 border-slate-100">
                             {data.author && (
                                 <div className="flex items-center gap-5">
-                                    <div className="w-14 h-14 rounded-full overflow-hidden bg-slate-100 border-2 border-white shadow-sm">
+                                    <div className="w-14 h-14 rounded-none overflow-hidden bg-slate-100 border border-slate-200">
                                         {data.author.image ? (
-                                            <img src={urlFor(data.author.image).width(100).url()} alt={data.author.name} className="w-full h-full object-cover" />
+                                            <img src={urlFor(data.author.image).width(100).url()} alt={data.author.name} className="w-full h-full object-cover grayscale-[0.2]" />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center text-slate-400 font-bold bg-slate-200">
                                                 {data.author.name[0]}
@@ -240,12 +240,12 @@ export const DetailView: React.FC<DetailViewProps> = ({ data, onBack, language }
                                                 href={googleMapsUrl}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="flex items-center gap-4 group"
+                                                className="flex items-center gap-5 group"
                                             >
-                                                <div className="w-10 h-10 bg-slate-100 rounded flex items-center justify-center group-hover:bg-slate-900 group-hover:text-white transition-colors">
+                                                <div className="w-12 h-12 bg-slate-100 rounded-none flex items-center justify-center group-hover:bg-slate-900 group-hover:text-white transition-colors border border-slate-200">
                                                     <MapPin size={18} />
                                                 </div>
-                                                <span className="text-sm font-bold text-slate-900 border-b border-transparent group-hover:border-slate-900 transition-all">
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-900 border-b-2 border-transparent group-hover:border-montenegro-red transition-all">
                                                     {language === 'mn' ? 'Pronađi na mapi' : 'Get Directions'}
                                                 </span>
                                             </a>
@@ -256,12 +256,12 @@ export const DetailView: React.FC<DetailViewProps> = ({ data, onBack, language }
                                                 href={data.contactInfo.website}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="flex items-center gap-4 group"
+                                                className="flex items-center gap-5 group"
                                             >
-                                                <div className="w-10 h-10 bg-slate-100 rounded flex items-center justify-center group-hover:bg-slate-900 group-hover:text-white transition-colors">
+                                                <div className="w-12 h-12 bg-slate-100 rounded-none flex items-center justify-center group-hover:bg-slate-900 group-hover:text-white transition-colors border border-slate-200">
                                                     <Globe size={18} />
                                                 </div>
-                                                <span className="text-sm font-bold text-slate-900 border-b border-transparent group-hover:border-slate-900 transition-all">
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-900 border-b-2 border-transparent group-hover:border-montenegro-red transition-all">
                                                     {language === 'mn' ? 'Zvanični sajt' : 'Visit Website'}
                                                 </span>
                                             </a>
@@ -307,7 +307,7 @@ export const DetailView: React.FC<DetailViewProps> = ({ data, onBack, language }
                                         <h4 className="text-xs font-black uppercase tracking-widest text-slate-400">Highlights</h4>
                                         <div className="flex flex-wrap gap-2">
                                             {data.features.map(feature => (
-                                                <span key={feature} className="text-[10px] font-black uppercase bg-slate-900 text-white px-3 py-1.5 rounded tracking-tighter">
+                                                <span key={feature} className="text-[10px] font-black uppercase bg-slate-900 text-white px-4 py-2 rounded-none tracking-widest border border-slate-900 hover:bg-white hover:text-slate-900 transition-colors cursor-default">
                                                     {feature}
                                                 </span>
                                             ))}
@@ -338,7 +338,7 @@ export const DetailView: React.FC<DetailViewProps> = ({ data, onBack, language }
                     <div className="pt-4">
                         <button
                             onClick={onBack}
-                            className="px-12 py-5 bg-white text-slate-900 rounded font-black uppercase tracking-widest text-xs hover:bg-montenegro-red hover:text-white transition-all shadow-2xl"
+                            className="px-12 py-5 bg-white text-slate-900 rounded-none font-black uppercase tracking-[0.3em] text-[10px] hover:bg-montenegro-red hover:text-white transition-all shadow-2xl"
                         >
                             {language === 'mn' ? 'Nazad na listu' : 'Return to Guides'}
                         </button>

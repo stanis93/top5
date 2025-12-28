@@ -1,6 +1,14 @@
 import { createClient } from '@sanity/client';
 import imageUrlBuilder from '@sanity/image-url';
-import { SanityBlogPost, SanityListItem, SanityImageAsset, SanityTown, SanityAmbassador } from '../types';
+import {
+    SanityBlogPost,
+    SanityListItem,
+    SanityImageAsset,
+    SanityTown,
+    SanityAmbassador,
+    SanityCityOfTheMonth,
+    SanitySiteSettings
+} from '../types';
 
 // Initialize Sanity client
 export const sanityClient = createClient({
@@ -200,5 +208,62 @@ export async function fetchTowns(): Promise<SanityTown[]> {
     } catch (error) {
         console.error('Error fetching towns from Sanity:', error);
         return [];
+    }
+}
+
+/**
+ * Fetch the latest active site settings
+ */
+export async function fetchSiteSettings(): Promise<SanitySiteSettings | null> {
+    const query = `*[_type == "siteSettings"][0] {
+    _id,
+    _type,
+    heroTitle,
+    heroSubtitle,
+    heroImage,
+    ctaPrimaryText,
+    ctaSecondaryText,
+    footerText
+  }`;
+
+    try {
+        const settings = await sanityClient.fetch<SanitySiteSettings | null>(query);
+        return settings;
+    } catch (error) {
+        console.error('Error fetching site settings from Sanity:', error);
+        return null;
+    }
+}
+
+/**
+ * Fetch the currently active City of the Month
+ */
+export async function fetchCityOfTheMonth(): Promise<SanityCityOfTheMonth | null> {
+    const query = `*[_type == "cityOfTheMonth" && active == true][0] {
+    _id,
+    _type,
+    title,
+    town->{
+      _id,
+      _type,
+      name,
+      slug,
+      region,
+      tagline,
+      image,
+      order
+    },
+    month,
+    description,
+    featuredImage,
+    active
+  }`;
+
+    try {
+        const feature = await sanityClient.fetch<SanityCityOfTheMonth | null>(query);
+        return feature;
+    } catch (error) {
+        console.error('Error fetching City of the Month from Sanity:', error);
+        return null;
     }
 }

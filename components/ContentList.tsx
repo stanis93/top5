@@ -190,27 +190,27 @@ export const ContentList: React.FC<ContentListProps> = ({ town, category, langua
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-32 animate-pulse">
-        <div className="relative w-20 h-20 mb-6">
-          <div className="absolute inset-0 border-4 border-slate-200 rounded-full"></div>
-          <div className="absolute inset-0 border-4 border-montenegro-red border-t-transparent rounded-full animate-spin"></div>
+      <div className="flex flex-col items-center justify-center py-48 animate-pulse">
+        <div className="relative w-16 h-16 mb-8">
+          <div className="absolute inset-0 border-[1px] border-slate-200 rounded-none"></div>
+          <div className="absolute inset-0 border-[1px] border-montenegro-red border-t-transparent rounded-none animate-spin"></div>
         </div>
-        <p className="text-slate-600 font-display font-medium text-lg tracking-wide">{loadingMsg}</p>
+        <p className="text-slate-400 font-display font-medium text-xs uppercase tracking-[0.4em]">{loadingMsg}</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-20 bg-white rounded-2xl border border-red-100 shadow-sm mx-4">
-        <div className="text-red-500 mb-4 flex justify-center"><AlertCircle size={48} /></div>
-        <h3 className="text-xl font-bold text-slate-900 mb-2">{language === 'mn' ? "Nedostupno" : "Unavailable"}</h3>
-        <p className="text-slate-600 mb-6">{error}</p>
+      <div className="text-center py-32 bg-white rounded-none border border-slate-100 shadow-sm mx-4">
+        <div className="text-red-500 mb-6 flex justify-center"><AlertCircle size={40} strokeWidth={1} /></div>
+        <h3 className="text-xl font-bold text-slate-900 mb-4 uppercase tracking-tighter">{language === 'mn' ? "Nedostupno" : "Unavailable"}</h3>
+        <p className="text-slate-500 mb-8 max-w-md mx-auto italic">{error}</p>
         <button
           onClick={() => window.location.reload()}
-          className="px-6 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 mx-auto"
+          className="px-10 py-4 bg-slate-900 text-white rounded-none hover:bg-slate-800 transition-colors flex items-center justify-center gap-3 mx-auto uppercase tracking-widest text-[10px] font-bold"
         >
-          <RefreshCw size={16} /> {language === 'mn' ? "Pokušaj ponovo" : "Try Again"}
+          <RefreshCw size={14} /> {language === 'mn' ? "Pokušaj ponovo" : "Try Again"}
         </button>
       </div>
     );
@@ -239,11 +239,11 @@ export const ContentList: React.FC<ContentListProps> = ({ town, category, langua
           <div
             key={item.id}
             onClick={() => handleItemClick(item)}
-            className={`group flex flex-col md:flex-row gap-0 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 ${item.rawData ? 'cursor-pointer' : ''}`}
+            className={`group flex flex-col md:flex-row gap-0 bg-white border border-slate-200 rounded-none overflow-hidden hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-500 ${item.rawData ? 'cursor-pointer' : ''}`}
           >
             {/* Image Side - Fixed absolute width to 'keep as is' while card grows */}
             <div className="w-full md:w-[480px] lg:w-[580px] aspect-[16/9] md:aspect-[16/7] relative overflow-hidden flex-shrink-0 bg-slate-100 border-r border-slate-100">
-              <div className="absolute top-4 left-4 z-20 w-10 h-10 bg-montenegro-red text-white flex items-center justify-center font-display font-black text-xl rounded-sm shadow-xl">
+              <div className="absolute top-4 left-4 z-20 w-10 h-10 bg-slate-900 text-white flex items-center justify-center font-display font-black text-xl rounded-none shadow-xl">
                 {index + 1}
               </div>
               <img
@@ -254,8 +254,8 @@ export const ContentList: React.FC<ContentListProps> = ({ town, category, langua
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
 
               {item.rawData && (
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30 backdrop-blur-sm">
-                  <span className="bg-white text-slate-900 px-7 py-2.5 rounded-sm font-black uppercase tracking-widest text-[9px] shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                <div className="absolute inset-0 flex items-center justify-center translate-y-full group-hover:translate-y-0 transition-transform duration-700 bg-slate-900/40 backdrop-blur-[2px]">
+                  <span className="bg-white text-slate-900 px-10 py-3 rounded-none font-black uppercase tracking-widest text-[10px] shadow-2xl">
                     {language === 'mn' ? 'Vidi Priču' : 'Read Full Story'}
                   </span>
                 </div>
